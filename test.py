@@ -1,4 +1,5 @@
 import pyfdb
+import shutil
 
 request = {
    'verb': 'retrieve',
@@ -43,25 +44,23 @@ for el in fdb.list(requeststring):
 
 
 print('\n\nFDB retrieve')
-print('fdb object, retrieve from request:', request)
-filename = 'foo.grib'
-print('and save to file ', filename)
-fdb.retrieve(request).saveTo(open(filename, 'wb'))
-
-
-print('\ndirect function, retrieve from request:', request)
-data = pyfdb.retrieve(request)
+print('\direct function, retrieve from request:', request)
+datareader = pyfdb.retrieve(request)
 
 print('\nreading a small chunk')
-chunk = data.read(40)
+chunk = datareader.read(10)
 print(chunk)
-print('return to data start - seek(0)')
-data.seek(0)
+print('tell()', datareader.tell())
+
+print('go back (partially) - seek(2)')
+datareader.seek(2)
+print('tell()', datareader.tell())
+
 print('reading a larger chunk')
-chunk = data.read(100)
+chunk = datareader.read(40)
 print(chunk)
-#
-# print(data.tell())
-filename = 'bar.grib'
+
+filename = 'foo.grib'
 print('\nsave to file ', filename)
-data.saveTo(open(filename, 'wb'))
+with open(filename, 'wb') as o, fdb.retrieve(request) as i:
+    shutil.copyfileobj(i, o)

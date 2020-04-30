@@ -263,11 +263,11 @@ class DataRetriever:
         if isinstance(where, int):
             lib.fdb_DataReader_seek(self.__dataread, where)
 
-#    def tell(self):
-#        self.open()
-#        where = ffi.new("long*")
-#        lib.fdb_DataReader_tell(self.__dataread, where)
-#        return where[0]
+    def tell(self):
+        self.open()
+        where = ffi.new("long*")
+        lib.fdb_DataReader_tell(self.__dataread, where)
+        return where[0]
 
     def read(self, count):
         self.open()
@@ -275,13 +275,13 @@ class DataRetriever:
             buf = bytearray(count)
             read = ffi.new('long*')
             lib.fdb_DataReader_read(self.__dataread, ffi.from_buffer(buf), count, read)
-            return buf
+            return buf[0:read[0]]
 
-    def saveTo(self, file):
-        self.close()
-        read = ffi.new('long*')
-        lib.fdb_DataReader_saveTo(self.__dataread, file.fileno(), read)
-        return read[0]
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        None
 
 
 class FDB:
