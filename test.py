@@ -40,3 +40,28 @@ requeststring = 'class=rd,expver=xxxx,levelist=300/to/500'
 print('fdb object, request as string:', requeststring)
 for el in fdb.list(requeststring):
     print(el)
+
+
+print('\n\nFDB retrieve')
+print('fdb object, retrieve from request:', request)
+filename = 'foo.grib'
+print('and save to file ', filename)
+fdb.retrieve(request).saveTo(open(filename, 'wb'))
+
+
+print('\ndirect function, retrieve from request:', request)
+data = pyfdb.retrieve(request)
+
+print('\nreading a small chunk')
+chunk = data.read(40)
+print(chunk)
+print('return to data start - seek(0)')
+data.seek(0)
+print('reading a larger chunk')
+chunk = data.read(100)
+print(chunk)
+#
+# print(data.tell())
+filename = 'bar.grib'
+print('\nsave to file ', filename)
+data.saveTo(open(filename, 'wb'))

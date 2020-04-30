@@ -148,7 +148,7 @@ class KeySet:
         self.__keyset = ffi.new('fdb_KeySet_t*')
 
     @property
-    def c(self):
+    def ctype(self):
         return self.__keyset
 
 
@@ -186,7 +186,7 @@ class MarsRequest:
                                       ffi.new('char*[]', cvals), len(values))
 
     @property
-    def c(self):
+    def ctype(self):
         return self.__marsrequest
 
 
@@ -196,26 +196,25 @@ class ToolRequest:
     def __init__(self, request):
         newrequest = ffi.new('fdb_ToolRequest_t**')
         if not request:
-            lib.fdb_ToolRequest_init_all(newrequest, KeySet().c)
+            lib.fdb_ToolRequest_init_all(newrequest, KeySet().ctype)
         else:
             if isinstance(request, str):
-                lib.fdb_ToolRequest_init_str(newrequest, ffi.new('char[]', request.encode('ascii')), KeySet().c)
+                lib.fdb_ToolRequest_init_str(newrequest, ffi.new('char[]', request.encode('ascii')), KeySet().ctype)
             else:
-                lib.fdb_ToolRequest_init_mars(newrequest, MarsRequest(request).c, KeySet().c)
+                lib.fdb_ToolRequest_init_mars(newrequest, MarsRequest(request).ctype, KeySet().ctype)
         self.__request = ffi.gc(newrequest[0], lib.fdb_ToolRequest_clean)
 
     @property
-    def c(self):
+    def ctype(self):
         return self.__request
 
 
 class ListIterator:
-
     __iterator = None
 
     def __init__(self, fdb, request):
         iterator = ffi.new("fdb_ListIterator_t**")
-        lib.fdb_list(fdb, request, iterator)
+        lib.fdb_list(fdb.ctype, ToolRequest(request).ctype, iterator)
 
         self.__iterator = ffi.gc(iterator[0], lib.fdb_list_clean)
 
@@ -235,9 +234,58 @@ class ListIterator:
                 yield ffi.string(elstr[0])
 
 
+class DataRetriever:
+    __dataread = None
+    __opened = False
+
+    def __init__(self, fdb, request):
+        dataread = ffi.new('fdb_DataReader_t **');
+        lib.fdb_retrieve(fdb.ctype, MarsRequest(request).ctype, dataread)
+        self.__dataread = ffi.gc(dataread[0], lib.fdb_DataReader_clean)
+
+    def open(self):
+        if not self.__opened:
+            self.__opened = True
+            lib.fdb_DataReader_open(self.__dataread)
+
+    def close(self):
+        if self.__opened:
+            self.__opened = False
+            lib.fdb_DataReader_close(self.__dataread)
+
+    def skip(self, count):
+        self.open()
+        if isinstance(count, int):
+            lib.fdb_DataReader_skip(self.__dataread, count)
+
+    def seek(self, where):
+        self.open()
+        if isinstance(where, int):
+            lib.fdb_DataReader_seek(self.__dataread, where)
+
+#    def tell(self):
+#        self.open()
+#        where = ffi.new("long*")
+#        lib.fdb_DataReader_tell(self.__dataread, where)
+#        return where[0]
+
+    def read(self, count):
+        self.open()
+        if isinstance(count, int):
+            buf = bytearray(count)
+            read = ffi.new('long*')
+            lib.fdb_DataReader_read(self.__dataread, ffi.from_buffer(buf), count, read)
+            return buf
+
+    def saveTo(self, file):
+        self.close()
+        read = ffi.new('long*')
+        lib.fdb_DataReader_saveTo(self.__dataread, file.fileno(), read)
+        return read[0]
+
+
 class FDB:
     """This is the main container class for accessing FDB"""
-
     __fdb = None
 
     def __init__(self):
@@ -248,23 +296,29 @@ class FDB:
         self.__fdb = ffi.gc(fdb[0], lib.fdb_clean)
 
     def list(self, request):
-        return ListIterator(self.__fdb, ToolRequest(request).c)
+        return ListIterator(self, request)
 
-    def retrieve_to_file(self, request, file):
-        f = open(file, "w")
-        return self.retrieve_to_fd(request, f.fileno())
+    def retrieve(self, request):
+        return DataRetriever(self, request)
 
-    def retrieve_to_fd(self, request, fd):
-        bytes_encoded = ffi.new('long*')
-        lib.fdb_retrieve_to_file_descriptor(self.__fdb, request.get, fd, bytes_encoded)
-        return bytes_encoded[0]
+    @property
+    def ctype(self):
+        return self.__fdb
 
 
 fdb = None
+
 
 def list(request):
     global fdb
     if not fdb:
         fdb = FDB()
-    return fdb.list(request)
+    return ListIterator(fdb, request)
+
+
+def retrieve(request):
+    global fdb
+    if not fdb:
+        fdb = FDB()
+    return DataRetriever(fdb, request)
 
