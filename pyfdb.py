@@ -173,11 +173,13 @@ class MarsRequest:
                 self.value(name, values)
 
     def value(self, name, values):
-        if name and name != 'verb' and values:
+        if name and name != 'verb':
             cvals = []
-            if isinstance(values, str):
+            if isinstance(values, (str,int)) :
                 values = [values]
             for value in values:
+                if isinstance(value, int):
+                    value = str(value)
                 cval = ffi.new("char[]", value.encode('ascii'))
                 cvals.append(cval)
 
@@ -195,11 +197,11 @@ class ToolRequest:
 
     def __init__(self, request):
         newrequest = ffi.new('fdb_ToolRequest_t**')
-        if not request:
-            lib.fdb_ToolRequest_init_all(newrequest, KeySet().ctype)
+        if isinstance(request, str):
+            lib.fdb_ToolRequest_init_str(newrequest, ffi.new('char[]', request.encode('ascii')), KeySet().ctype)
         else:
-            if isinstance(request, str):
-                lib.fdb_ToolRequest_init_str(newrequest, ffi.new('char[]', request.encode('ascii')), KeySet().ctype)
+            if request.get('all') or bool(request.get('all')):
+                lib.fdb_ToolRequest_init_all(newrequest, KeySet().ctype)
             else:
                 lib.fdb_ToolRequest_init_mars(newrequest, MarsRequest(request).ctype, KeySet().ctype)
         self.__request = ffi.gc(newrequest[0], lib.fdb_ToolRequest_clean)
@@ -231,7 +233,7 @@ class ListIterator:
             if exist:
                 elstr = ffi.new('char**')
                 lib.fdb_ListElement_str(el[0], elstr)
-                yield ffi.string(elstr[0])
+                yield ffi.string(elstr[0]).decode('ascii')
 
 
 class DataRetriever:

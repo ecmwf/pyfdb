@@ -1,19 +1,20 @@
 import pyfdb
 import shutil
 
+### List ###
 request = {
-   'verb': 'retrieve',
-   'class': 'rd',
-   'expver': 'xxxy',
-   'stream': 'oper',
-   'date': '20191110',
-   'time': '0000',
-   'domain': 'g',
-   'type': 'an',
-   'levtype': 'pl',
-   'step': '0',
-   'levelist': ['300', '400', '500'],
-   'param': ['138', '155']
+    'verb': 'retrieve',
+    'class': 'rd',
+    'expver': 'xxxy',
+    'stream': 'oper',
+    'date': '20191110',
+    'time': '0000',
+    'domain': 'g',
+    'type': 'an',
+    'levtype': 'pl',
+    'step': 0,
+    'levelist': [300, '400', 500],
+    'param': ['138', 155, 't']
 }
 print('direct function, request as dictionary:', request)
 for el in pyfdb.list(request):
@@ -21,30 +22,42 @@ for el in pyfdb.list(request):
 
 request['levelist'] = ['100', '200', '300', '400', '500', '700', '850', '1000']
 request['param'] = '138'
-print('direct function, updated dictionary:', request)
+print('\ndirect function, updated dictionary:', request)
 for el in pyfdb.list(request):
     print(el)
 
 requeststring = 'class=rd,expver=xxxy'
-print('direct function, request as string:', requeststring)
+print('\ndirect function, request as string:', requeststring)
 for el in pyfdb.list(requeststring):
     print(el)
 
 
 # as an alternative, create a FDB instance and start queries from there
+request['levelist'] = ['400', '500', '700', '850', '1000']
+request['all'] = False
 fdb = pyfdb.FDB()
-print('fdb object, request as dictionary:', request)
+print('\nfdb object, request as dictionary:', request)
 for el in fdb.list(request):
     print(el)
 
 requeststring = 'class=rd,expver=xxxx,levelist=300/to/500'
-print('fdb object, request as string:', requeststring)
+print('\nfdb object, request as string:', requeststring)
 for el in fdb.list(requeststring):
     print(el)
 
+requestall = {'all': True}
+print('\nlist ALL using request:', requestall)
+for el in fdb.list(requestall):
+    print(el)
 
+requestall = {'all': 'true'}
+print('\nlist ALL using request:', requestall)
+for el in fdb.list(requestall):
+    print(el)
+
+### Retrieve ###
 print('\n\nFDB retrieve')
-print('\direct function, retrieve from request:', request)
+print('direct function, retrieve from request:', request)
 datareader = pyfdb.retrieve(request)
 
 print('\nreading a small chunk')
