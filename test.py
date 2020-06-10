@@ -1,11 +1,12 @@
 import pyfdb
 import shutil
 
+# using minparams - not full request
+
 ### List ###
 request = {
-    'verb': 'retrieve',
     'class': 'rd',
-    'expver': 'xxxy',
+    'expver': 'xxxx',
     'stream': 'oper',
     'date': '20191110',
     'time': '0000',
@@ -34,7 +35,6 @@ for el in pyfdb.list(requeststring):
 
 # as an alternative, create a FDB instance and start queries from there
 request['levelist'] = ['400', '500', '700', '850', '1000']
-request['all'] = False
 fdb = pyfdb.FDB()
 print('\nfdb object, request as dictionary:', request)
 for el in fdb.list(request):
@@ -45,17 +45,24 @@ print('\nfdb object, request as string:', requeststring)
 for el in fdb.list(requeststring):
     print(el)
 
-requestall = {'all': True}
-print('\nlist ALL using request:', requestall)
-for el in fdb.list(requestall):
-    print(el)
-
-requestall = {'all': 'true'}
-print('\nlist ALL using request:', requestall)
-for el in fdb.list(requestall):
+print('\nlist ALL:')
+for el in fdb.list():
     print(el)
 
 ### Retrieve ###
+
+request = {
+    'class': 'od',
+    'expver': '0001',
+    'stream': 'oper',
+    'date': '20040118',
+    'time': '0000',
+    'domain': 'g',
+    'type': 'an',
+    'levtype': 'sfc',
+    'step': 0,
+    'param': 151
+}
 print('\n\nFDB retrieve')
 print('direct function, retrieve from request:', request)
 datareader = pyfdb.retrieve(request)
@@ -73,7 +80,18 @@ print('reading a larger chunk')
 chunk = datareader.read(40)
 print(chunk)
 
+from pyeccodes import Reader
+
+print('go back - seek(0), and decode GRIB')
+datareader.seek(0)
+reader = Reader(datareader)
+grib = next(reader)
+grib.dump()
+
+
 filename = 'foo.grib'
 print('\nsave to file ', filename)
 with open(filename, 'wb') as o, fdb.retrieve(request) as i:
     shutil.copyfileobj(i, o)
+
+# fdb.archive()

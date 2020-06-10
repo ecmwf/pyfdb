@@ -140,6 +140,10 @@ class Key:
     def set(self, k, v):
         lib.fdb_Key_set(self.__key, ffi.new('char[]', k.encode('ascii')), ffi.new('char[]', v.encode('ascii')))
 
+    @property
+    def ctype(self):
+        return self.__key
+
 
 class KeySet:
     __keyset = None
@@ -163,10 +167,10 @@ class MarsRequest:
             self.__marsrequest = ffi.gc(newrequest[0], lib.fdb_MarsRequest_clean)
 
         else:                           # the request is a dictionary, we will rely on MarsRequest
-            verb = request.get('verb')
-            if not verb:
-                verb = 'retrieve'
-            lib.fdb_MarsRequest_init(newrequest, verb.encode('ascii'))
+            # verb = request.get('verb')
+            # if not verb:
+            #     verb = 'retrieve'
+            lib.fdb_MarsRequest_init(newrequest, 'retrieve'.encode('ascii'))
             self.__marsrequest = ffi.gc(newrequest[0], lib.fdb_MarsRequest_clean)
 
             for name, values in request.items():
@@ -175,7 +179,7 @@ class MarsRequest:
     def value(self, name, values):
         if name and name != 'verb':
             cvals = []
-            if isinstance(values, (str,int)) :
+            if isinstance(values, (str, int)):
                 values = [values]
             for value in values:
                 if isinstance(value, int):
@@ -197,13 +201,13 @@ class ToolRequest:
 
     def __init__(self, request):
         newrequest = ffi.new('fdb_ToolRequest_t**')
-        if isinstance(request, str):
-            lib.fdb_ToolRequest_init_str(newrequest, ffi.new('char[]', request.encode('ascii')), KeySet().ctype)
-        else:
-            if request.get('all') or bool(request.get('all')):
-                lib.fdb_ToolRequest_init_all(newrequest, KeySet().ctype)
+        if request:
+            if isinstance(request, str):
+                lib.fdb_ToolRequest_init_str(newrequest, ffi.new('char[]', request.encode('ascii')), KeySet().ctype)
             else:
                 lib.fdb_ToolRequest_init_mars(newrequest, MarsRequest(request).ctype, KeySet().ctype)
+        else:
+            lib.fdb_ToolRequest_init_all(newrequest, KeySet().ctype)
         self.__request = ffi.gc(newrequest[0], lib.fdb_ToolRequest_clean)
 
     @property
@@ -245,6 +249,8 @@ class DataRetriever:
         lib.fdb_retrieve(fdb.ctype, MarsRequest(request).ctype, dataread)
         self.__dataread = ffi.gc(dataread[0], lib.fdb_DataReader_clean)
 
+    mode = 'rb'
+
     def open(self):
         if not self.__opened:
             self.__opened = True
@@ -262,6 +268,7 @@ class DataRetriever:
 
     def seek(self, where):
         self.open()
+        print('seek', where)
         if isinstance(where, int):
             lib.fdb_DataReader_seek(self.__dataread, where)
 
@@ -297,7 +304,10 @@ class FDB:
         # Set free function
         self.__fdb = ffi.gc(fdb[0], lib.fdb_clean)
 
-    def list(self, request):
+    def archive(self, key, data):
+        lib.fdb_archive(fdb.ctype, Key(key).ctype, ffi.from_buffer(data), len(data))
+
+    def list(self, request=None):
         return ListIterator(self, request)
 
     def retrieve(self, request):
@@ -309,6 +319,13 @@ class FDB:
 
 
 fdb = None
+
+
+def archive(key, data):
+    global fdb
+    if not fdb:
+        fdb = FDB()
+    fdb.archive(key, data)
 
 
 def list(request):
