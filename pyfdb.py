@@ -41,7 +41,7 @@ class PatchedLib:
     def __init__(self):
 
         ffi.cdef(self.__read_header())
-        self.__lib = ffi.dlopen('libfdb5.dylib')
+        self.__lib = ffi.dlopen('libfdb5.so')
 
         # Todo: Version check against __version__
 
@@ -217,11 +217,13 @@ class ToolRequest:
 
 class ListIterator:
     __iterator = None
+    __seenKeys = []
 
     def __init__(self, fdb, request):
         iterator = ffi.new("fdb_ListIterator_t**")
         lib.fdb_list(fdb.ctype, ToolRequest(request).ctype, iterator)
 
+        self.__seenKeys = []
         self.__iterator = ffi.gc(iterator[0], lib.fdb_list_clean)
 
     def __iter__(self):
@@ -237,7 +239,10 @@ class ListIterator:
             if exist:
                 elstr = ffi.new('char**')
                 lib.fdb_ListElement_str(el[0], elstr)
-                yield ffi.string(elstr[0]).decode('ascii')
+                out = ffi.string(elstr[0]).decode('ascii')
+                if out not in self.__seenKeys:
+                    self.__seenKeys.append(out)
+                    yield out
 
 
 class DataRetriever:
@@ -268,7 +273,7 @@ class DataRetriever:
 
     def seek(self, where):
         self.open()
-        print('seek', where)
+#        print('seek', where)
         if isinstance(where, int):
             lib.fdb_DataReader_seek(self.__dataread, where)
 
@@ -305,7 +310,7 @@ class FDB:
         self.__fdb = ffi.gc(fdb[0], lib.fdb_clean)
 
     def archive(self, key, data):
-        lib.fdb_archive(fdb.ctype, Key(key).ctype, ffi.from_buffer(data), len(data))
+        lib.fdb_archive(self.ctype, Key(key).ctype, ffi.from_buffer(data), len(data))
 
     def list(self, request=None):
         return ListIterator(self, request)
@@ -319,7 +324,6 @@ class FDB:
 
 
 fdb = None
-
 
 def archive(key, data):
     global fdb
