@@ -16,6 +16,7 @@ from collections import Iterable
 
 import cffi
 import os
+import platform
 from pkg_resources import parse_version
 
 __version__ = '0.0.1'
@@ -41,7 +42,12 @@ class PatchedLib:
     def __init__(self):
 
         ffi.cdef(self.__read_header())
-        self.__lib = ffi.dlopen('libfdb5.so')
+        libName = {
+            'Linux': 'libfdb5.so',
+            'Darwin': 'libfdb5.dylib',
+            'Windows': 'libfdb5.dll'
+        }
+        self.__lib = ffi.dlopen(libName[platform.system()])
 
         # Todo: Version check against __version__
 

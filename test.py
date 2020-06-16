@@ -50,28 +50,33 @@ for el in pyfdb.list(request):
 
 request['levelist'] = ['100', '200', '300', '400', '500', '700', '850', '1000']
 request['param'] = '138'
-print('\n\ndirect function, updated dictionary:', request)
+print('')
+print('direct function, updated dictionary:', request)
 for el in pyfdb.list(request):
     print(el)
 
 requeststring = 'class=rd,expver=xxxy'
-print('\n\ndirect function, request as string:', requeststring)
+print('')
+print('direct function, request as string:', requeststring)
 for el in pyfdb.list(requeststring):
     print(el)
 
 
 # as an alternative, create a FDB instance and start queries from there
 request['levelist'] = ['400', '500', '700', '850', '1000']
-print('\n\nfdb object, request as dictionary:', request)
+print('')
+print('fdb object, request as dictionary:', request)
 for el in fdb.list(request):
     print(el)
 
 requeststring = 'class=rd,expver=xxxx,levelist=300/to/500'
-print('\n\nfdb object, request as string:', requeststring)
+print('')
+print('fdb object, request as string:', requeststring)
 for el in fdb.list(requeststring):
     print(el)
 
-print('\n\nlist ALL:')
+print('')
+print('list ALL:')
 for el in fdb.list():
     print(el)
 
@@ -93,19 +98,20 @@ request = {
 }
 
 filename = 'x138-300bis.grib'
-print('\n\nsave to file ', filename)
+print('')
+print('save to file ', filename)
 with open(filename, 'wb') as o, fdb.retrieve(request) as i:
     shutil.copyfileobj(i, o)
 
 request['levelist'] = '400'
 filename = 'x138-400bis.grib'
-print('\n\nsave to file ', filename)
+print('save to file ', filename)
 with open(filename, 'wb') as o, fdb.retrieve(request) as i:
     shutil.copyfileobj(i, o)
 
 request['expver'] = 'xxxy'
 filename = 'y138-400bis.grib'
-print('\n\nsave to file ', filename)
+print('save to file ', filename)
 with open(filename, 'wb') as o, pyfdb.retrieve(request) as i:
     shutil.copyfileobj(i, o)
 
@@ -123,11 +129,13 @@ with open(filename, 'wb') as o, pyfdb.retrieve(request) as i:
 #     'step': 0,
 #     'param': 151
 # }
-print('\n\nFDB retrieve')
+print('')
+print('FDB retrieve')
 print('direct function, retrieve from request:', request)
 datareader = pyfdb.retrieve(request)
 
-print('\nreading a small chunk')
+print('')
+print('reading a small chunk')
 chunk = datareader.read(10)
 print(chunk)
 print('tell()', datareader.tell())
@@ -140,10 +148,12 @@ print('reading a larger chunk')
 chunk = datareader.read(40)
 print(chunk)
 
-from pyeccodes import Reader
-
-print('go back - seek(0), and decode GRIB')
+print('go back - seek(0)')
 datareader.seek(0)
+
+print('')
+print('decode GRIB')
+from pyeccodes import Reader
 reader = Reader(datareader)
 grib = next(reader)
 grib.dump()
@@ -151,7 +161,9 @@ grib.dump()
 request['levelist'] = [300, '400']
 request['expver'] = 'xxxx'
 filename = 'foo.grib'
-print('\nsave to file ', filename)
+
+print('')
+print('save to file ', filename)
 with open(filename, 'wb') as o, fdb.retrieve(request) as i:
     shutil.copyfileobj(i, o)
 
