@@ -1,11 +1,13 @@
 import pyfdb
 import shutil
+import time
 
 fdb = pyfdb.FDB()
 
 ### Archive ###
-request = {
+key = {
     'domain': 'g',
+    'stream': 'oper',
     'levtype': 'pl',
     'levelist': '300',
     'date': '20191110',
@@ -14,21 +16,19 @@ request = {
     'param': '138',
     'class': 'rd',
     'type': 'an',
-    'stream': 'oper',
     'expver': 'xxxx'
 }
 
 filename = 'x138-300.grib'
-pyfdb.archive(request, open(filename, "rb").read())
+pyfdb.archive(key, open(filename, "rb").read())
 
-request['levelist'] = '400'
+key['levelist'] = '400'
 filename = 'x138-400.grib'
-pyfdb.archive(request, open(filename, "rb").read())
+pyfdb.archive(key, open(filename, "rb").read())
 
-request['expver'] = 'xxxy'
+key['expver'] = 'xxxy'
 filename = 'y138-400.grib'
-fdb.archive(request, open(filename, "rb").read())
-
+fdb.archive(key, open(filename, "rb").read())
 
 ### List ###
 request = {
@@ -55,24 +55,12 @@ print('direct function, updated dictionary:', request)
 for el in pyfdb.list(request):
     print(el)
 
-requeststring = 'class=rd,expver=xxxy'
-print('')
-print('direct function, request as string:', requeststring)
-for el in pyfdb.list(requeststring):
-    print(el)
-
 
 # as an alternative, create a FDB instance and start queries from there
 request['levelist'] = ['400', '500', '700', '850', '1000']
 print('')
 print('fdb object, request as dictionary:', request)
 for el in fdb.list(request):
-    print(el)
-
-requeststring = 'class=rd,expver=xxxx,levelist=300/to/500'
-print('')
-print('fdb object, request as string:', requeststring)
-for el in fdb.list(requeststring):
     print(el)
 
 print('')
