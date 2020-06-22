@@ -23,9 +23,8 @@ typedef struct fdb_t fdb_t;
 
 int fdb_init(fdb_t** fdb);
 int fdb_archive(fdb_t* fdb, fdb_key_t* key, const char* data, size_t length);
-int fdb_list(fdb_t* fdb, const fdb_request_t* req, fdb_listiterator_t** it);
-//typedef long (*fdb_stream_write_t)(void* context, const void* data, long length);
-int fdb_retrieve(fdb_t* fdb, fdb_request_t* req, fdb_datareader_t** dr);
+int fdb_list(fdb_t* fdb, const fdb_request_t* req, fdb_listiterator_t* it);
+int fdb_retrieve(fdb_t* fdb, fdb_request_t* req, fdb_datareader_t* dr);
 int fdb_clean(fdb_t* fdb);
 
 int fdb_key_init(fdb_key_t** key);
@@ -36,9 +35,11 @@ int fdb_request_init(fdb_request_t** req);
 int fdb_request_add(fdb_request_t* req, char* name, char* values[], int numValues);
 int fdb_request_clean(fdb_request_t* req);
 
+int fdb_listiterator_init(fdb_listiterator_t** it);
 int fdb_listiterator_next(fdb_listiterator_t* it, bool* exist, char* str, size_t length);
 int fdb_listiterator_clean(fdb_listiterator_t* it);
 
+int fdb_datareader_init(fdb_datareader_t** dr);
 int fdb_datareader_open(fdb_datareader_t* dr);
 int fdb_datareader_close(fdb_datareader_t* dr);
 int fdb_datareader_tell(fdb_datareader_t* dr, long* pos);

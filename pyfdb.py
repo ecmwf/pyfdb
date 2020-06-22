@@ -190,13 +190,15 @@ class ListIterator:
 
     def __init__(self, fdb, request):
         iterator = ffi.new("fdb_listiterator_t**")
+        lib.fdb_listiterator_init(iterator)
+        self.__iterator = ffi.gc(iterator[0], lib.fdb_listiterator_clean)
+
         if request:
-            lib.fdb_list(fdb.ctype, Request(request).ctype, iterator)
+            lib.fdb_list(fdb.ctype, Request(request).ctype, self.__iterator)
         else:
-            lib.fdb_list(fdb.ctype, ffi.NULL, iterator)
+            lib.fdb_list(fdb.ctype, ffi.NULL, self.__iterator)
 
         self.__seenKeys = []
-        self.__iterator = ffi.gc(iterator[0], lib.fdb_listiterator_clean)
 
     def __iter__(self):
         elstr = ffi.new("char[200]")
@@ -218,9 +220,11 @@ class DataRetriever:
     __opened = False
 
     def __init__(self, fdb, request):
-        dataread = ffi.new('fdb_datareader_t **');
-        lib.fdb_retrieve(fdb.ctype, Request(request).ctype, dataread)
+        dataread = ffi.new('fdb_datareader_t **')
+        lib.fdb_datareader_init(dataread)
         self.__dataread = ffi.gc(dataread[0], lib.fdb_datareader_clean)
+
+        lib.fdb_retrieve(fdb.ctype, Request(request).ctype, self.__dataread)
 
     mode = 'rb'
 
