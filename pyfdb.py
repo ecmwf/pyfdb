@@ -135,10 +135,10 @@ class Key:
 
     def __init__(self, keys):
         key = ffi.new('fdb_key_t**')
-        lib.fdb_key_init(key)
+        lib.fdb_new_key(key)
 
         # Set free function
-        self.__key = ffi.gc(key[0], lib.fdb_key_clean)
+        self.__key = ffi.gc(key[0], lib.fdb_delete_key)
 
         for k, v in keys.items():
             self.set(k, v)
@@ -158,8 +158,8 @@ class Request:
         newrequest = ffi.new('fdb_request_t**')
 
         # we assume a retrieve request represented as a dictionary
-        lib.fdb_request_init(newrequest)
-        self.__request = ffi.gc(newrequest[0], lib.fdb_request_clean)
+        lib.fdb_new_request(newrequest)
+        self.__request = ffi.gc(newrequest[0], lib.fdb_delete_request)
 
         for name, values in request.items():
             self.value(name, values)
@@ -190,8 +190,8 @@ class ListIterator:
 
     def __init__(self, fdb, request):
         iterator = ffi.new("fdb_listiterator_t**")
-        lib.fdb_listiterator_init(iterator)
-        self.__iterator = ffi.gc(iterator[0], lib.fdb_listiterator_clean)
+        lib.fdb_new_listiterator(iterator)
+        self.__iterator = ffi.gc(iterator[0], lib.fdb_delete_listiterator)
 
         if request:
             lib.fdb_list(fdb.ctype, Request(request).ctype, self.__iterator)
@@ -201,15 +201,15 @@ class ListIterator:
         self.__seenKeys = []
 
     def __iter__(self):
-        elstr = ffi.new("char[200]")
+        elstr = ffi.new("const char**")
 
         exist = True
         while exist:
             cexist = ffi.new("bool*")
-            lib.fdb_listiterator_next(self.__iterator, cexist, elstr, 200)
+            lib.fdb_listiterator_next(self.__iterator, cexist, elstr)
             exist = cexist[0]
             if exist:
-                out = ffi.string(elstr).decode('ascii')
+                out = ffi.string(elstr[0]).decode('ascii')
                 if out not in self.__seenKeys:
                     self.__seenKeys.append(out)
                     yield out
@@ -221,8 +221,8 @@ class DataRetriever:
 
     def __init__(self, fdb, request):
         dataread = ffi.new('fdb_datareader_t **')
-        lib.fdb_datareader_init(dataread)
-        self.__dataread = ffi.gc(dataread[0], lib.fdb_datareader_clean)
+        lib.fdb_new_datareader(dataread)
+        self.__dataread = ffi.gc(dataread[0], lib.fdb_delete_datareader)
 
         lib.fdb_retrieve(fdb.ctype, Request(request).ctype, self.__dataread)
 
@@ -275,11 +275,11 @@ class FDB:
     __fdb = None
 
     def __init__(self):
-        fdb = ffi.new('fdb_t**')
-        lib.fdb_init(fdb)
+        fdb = ffi.new('fdb_handle_t**')
+        lib.fdb_new_handle(fdb)
 
         # Set free function
-        self.__fdb = ffi.gc(fdb[0], lib.fdb_clean)
+        self.__fdb = ffi.gc(fdb[0], lib.fdb_delete_handle)
 
     def archive(self, key, data):
         lib.fdb_archive(self.ctype, Key(key).ctype, ffi.from_buffer(data), len(data))

@@ -62,11 +62,11 @@ print('')
 print('fdb object, request as dictionary:', request)
 for el in fdb.list(request):
     print(el)
-
-print('')
-print('list ALL:')
-for el in fdb.list():
-    print(el)
+#
+# print('')
+# print('list ALL:')
+# for el in fdb.list():
+#     print(el)
 
 
 

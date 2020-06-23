@@ -18,32 +18,32 @@ struct fdb_listiterator_t;
 typedef struct fdb_listiterator_t fdb_listiterator_t;
 struct fdb_datareader_t;
 typedef struct fdb_datareader_t fdb_datareader_t;
-struct fdb_t;
-typedef struct fdb_t fdb_t;
+struct fdb_handle_t;
+typedef struct fdb_handle_t fdb_handle_t;
 
-int fdb_init(fdb_t** fdb);
-int fdb_archive(fdb_t* fdb, fdb_key_t* key, const char* data, size_t length);
-int fdb_list(fdb_t* fdb, const fdb_request_t* req, fdb_listiterator_t* it);
-int fdb_retrieve(fdb_t* fdb, fdb_request_t* req, fdb_datareader_t* dr);
-int fdb_clean(fdb_t* fdb);
+int fdb_new_handle(fdb_handle_t** fdb);
+int fdb_archive(fdb_handle_t* fdb, fdb_key_t* key, const char* data, size_t length);
+int fdb_list(fdb_handle_t* fdb, const fdb_request_t* req, fdb_listiterator_t* it);
+int fdb_retrieve(fdb_handle_t* fdb, fdb_request_t* req, fdb_datareader_t* dr);
+int fdb_delete_handle(fdb_handle_t* fdb);
 
-int fdb_key_init(fdb_key_t** key);
-int fdb_key_add(fdb_key_t* key, char* k, char* v);
-int fdb_key_clean(fdb_key_t* key);
+int fdb_new_key(fdb_key_t** key);
+int fdb_key_add(fdb_key_t* key, char* param, char* value);
+int fdb_delete_key(fdb_key_t* key);
 
-int fdb_request_init(fdb_request_t** req);
-int fdb_request_add(fdb_request_t* req, char* name, char* values[], int numValues);
-int fdb_request_clean(fdb_request_t* req);
+int fdb_new_request(fdb_request_t** req);
+int fdb_request_add(fdb_request_t* req, char* param, char* values[], int numValues);
+int fdb_delete_request(fdb_request_t* req);
 
-int fdb_listiterator_init(fdb_listiterator_t** it);
-int fdb_listiterator_next(fdb_listiterator_t* it, bool* exist, char* str, size_t length);
-int fdb_listiterator_clean(fdb_listiterator_t* it);
+int fdb_new_listiterator(fdb_listiterator_t** it);
+int fdb_listiterator_next(fdb_listiterator_t* it, bool* exist, const char** str);
+int fdb_delete_listiterator(fdb_listiterator_t* it);
 
-int fdb_datareader_init(fdb_datareader_t** dr);
+int fdb_new_datareader(fdb_datareader_t** dr);
 int fdb_datareader_open(fdb_datareader_t* dr);
 int fdb_datareader_close(fdb_datareader_t* dr);
 int fdb_datareader_tell(fdb_datareader_t* dr, long* pos);
 int fdb_datareader_seek(fdb_datareader_t* dr, long pos);
 int fdb_datareader_skip(fdb_datareader_t* dr, long count);
 int fdb_datareader_read(fdb_datareader_t* dr, void *buf, long count, long* read);
-int fdb_datareader_clean(fdb_datareader_t* dr);
+int fdb_delete_datareader(fdb_datareader_t* dr);
