@@ -65,7 +65,7 @@ class PatchedLib:
 
         # Initialise the library, and sett it up for python-appropriate behaviour
 
-        self.fdb_initialise_api()
+        self.fdb_initialise()
 
         # Check the library version
 

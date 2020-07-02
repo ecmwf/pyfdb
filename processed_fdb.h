@@ -1,7 +1,7 @@
-int fdb_initialise_api();
+int fdb_initialise();
 int fdb_version(const char** version);
 int fdb_vcs_version(const char** version);
-enum FdcErrorValues {
+enum FdbErrorValues {
     FDB_SUCCESS                  = 0,
     FDB_ERROR_GENERAL_EXCEPTION  = 1,
     FDB_ERROR_UNKNOWN_EXCEPTION  = 2
