@@ -143,8 +143,8 @@ class Key:
         for k, v in keys.items():
             self.set(k, v)
 
-    def set(self, k, v):
-        lib.fdb_key_add(self.__key, ffi.new('char[]', k.encode('ascii')), ffi.new('char[]', v.encode('ascii')))
+    def set(self, param, value):
+        lib.fdb_key_add(self.__key, ffi.new('const char[]', param.encode('ascii')), ffi.new('const char[]', value.encode('ascii')))
 
     @property
     def ctype(self):
@@ -172,12 +172,12 @@ class Request:
             for value in values:
                 if isinstance(value, int):
                     value = str(value)
-                cval = ffi.new("char[]", value.encode('ascii'))
+                cval = ffi.new("const char[]", value.encode('ascii'))
                 cvals.append(cval)
 
             lib.fdb_request_add(self.__request,
-                                ffi.new('char[]', name.encode('ascii')),
-                                ffi.new('char*[]', cvals), len(values))
+                                ffi.new('const char[]', name.encode('ascii')),
+                                ffi.new('const char*[]', cvals), len(values))
 
     @property
     def ctype(self):
@@ -231,7 +231,7 @@ class DataRetriever:
     def open(self):
         if not self.__opened:
             self.__opened = True
-            lib.fdb_datareader_open(self.__dataread)
+            lib.fdb_datareader_open(self.__dataread, ffi.NULL)
 
     def close(self):
         if self.__opened:
