@@ -281,8 +281,11 @@ class FDB:
         # Set free function
         self.__fdb = ffi.gc(fdb[0], lib.fdb_delete_handle)
 
-    def archive(self, key, data):
-        lib.fdb_archive(self.ctype, Key(key).ctype, ffi.from_buffer(data), len(data))
+    def archive(self, data, key=None):
+        if key is None:
+            lib.fdb_multi_archive(self.ctype, ffi.from_buffer(data), len(data))
+        else:
+            lib.fdb_archive(self.ctype, Key(key).ctype, ffi.from_buffer(data), len(data))
 
     def list(self, request=None):
         return ListIterator(self, request)
@@ -297,11 +300,11 @@ class FDB:
 
 fdb = None
 
-def archive(key, data):
+def archive(data, key=None):
     global fdb
     if not fdb:
         fdb = FDB()
-    fdb.archive(key, data)
+    fdb.archive(data, key)
 
 
 def list(request):
