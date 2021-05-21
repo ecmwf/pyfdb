@@ -287,6 +287,9 @@ class FDB:
         else:
             lib.fdb_archive(self.ctype, Key(key).ctype, ffi.from_buffer(data), len(data))
 
+    def flush(self):
+        lib.fdb_flush(self.ctype)
+
     def list(self, request=None):
         return ListIterator(self, request)
 
