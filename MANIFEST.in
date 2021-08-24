@@ -1,1 +1,1 @@
-include processed_fdb.h
+include pyfdb/processed_fdb.h
