@@ -100,7 +100,7 @@ class PatchedLib:
         def wrapped_fn(*args, **kwargs):
             retval = fn(*args, **kwargs)
             if retval != self.__lib.FDB_SUCCESS:
-                error_str = "Error in function {}: {}".format(name, self.__lib.fdb_error_string(retval))
+                error_str = "Error in function {}: {}".format(name, ffi.string(self.__lib.fdb_error_string(retval)).decode())
                 raise FDBException(error_str)
             return retval
 
