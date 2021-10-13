@@ -1,0 +1,10 @@
+.*
+!.gitignore
+!.github
+*.py[cod]
+**/__pycache__
+pyfdb.egg-info/
+dist/
+**/build
+*.grib
+!data/*.grib
