@@ -63,7 +63,7 @@ class PatchedLib:
                 print(e)
                 print("Error retrieving attribute", f, "from library")
 
-        # Initialise the library, and sett it up for python-appropriate behaviour
+        # Initialise the library, and set it up for python-appropriate behaviour
 
         self.fdb_initialise()
 
@@ -76,24 +76,13 @@ class PatchedLib:
         if parse_version(versionstr) < parse_version(__fdb_version__):
             raise RuntimeError("Version of libfdb found is too old. {} < {}".format(versionstr, __fdb_version__))
 
-    #    def type_name(self, typ: 'DataType'):
-    #        name = self.__type_names.get(typ, None)
-    #        if name is not None:
-    #            return name
-
-    #        name_tmp = ffi.new('char**')
-    #        self.odc_column_type_name(typ, name_tmp)
-    #        name = ffi.string(name_tmp[0]).decode('utf-8')
-    #        self.__type_names[typ] = name
-    #        return name
-
     def __read_header(self):
         with open(os.path.join(os.path.dirname(__file__), 'processed_fdb.h'), 'r') as f:
             return f.read()
 
     def __check_error(self, fn, name):
         """
-        If calls into the ODC library return errors, ensure that they get detected and reported
+        If calls into the FDB library return errors, ensure that they get detected and reported
         by throwing an appropriate python exception.
         """
 
@@ -106,29 +95,9 @@ class PatchedLib:
 
         return wrapped_fn
 
-
 # Bootstrap the library
 
 lib = PatchedLib()
-
-
-# Construct lookups/constants as is useful
-
-# @unique
-# class DataType(IntEnum):
-#    IGNORE = lib.ODC_IGNORE
-#    INTEGER = lib.ODC_INTEGER
-#    DOUBLE = lib.ODC_DOUBLE
-#    REAL = lib.ODC_REAL
-#    STRING = lib.ODC_STRING
-#    BITFIELD = lib.ODC_BITFIELD
-
-# IGNORE = DataType.IGNORE
-# INTEGER = DataType.INTEGER
-# REAL = DataType.REAL
-# STRING = DataType.STRING
-# BITFIELD = DataType.BITFIELD
-# DOUBLE = DataType.DOUBLE
 
 class Key:
     __key = None
@@ -245,7 +214,6 @@ class DataRetriever:
 
     def seek(self, where):
         self.open()
-#        print('seek', where)
         if isinstance(where, int):
             lib.fdb_datareader_seek(self.__dataread, where)
 
