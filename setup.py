@@ -1,7 +1,7 @@
 from setuptools import setup, find_packages
 setup(
     name='pyfdb',
-    install_requires=['cffi'],
+    install_requires=['cffi','findlibs'],
     packages = find_packages(),
     include_package_data = True,
     description = 'Python interface to FDB',
