@@ -29,7 +29,7 @@ key = {
 }
 
 filename = 'x138-300.grib'
-pyfdb.archive(open(filename, "rb").read(), key)
+fdb.archive(open(filename, "rb").read(), key)
 
 key['levelist'] = '400'
 filename = 'x138-400.grib'

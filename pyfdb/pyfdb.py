@@ -246,11 +246,11 @@ class FDB:
         # Set free function
         self.__fdb = ffi.gc(fdb[0], lib.fdb_delete_handle)
 
-    def archive(self, data, key=None):
-        if key is None:
-            lib.fdb_multi_archive(self.ctype, ffi.from_buffer(data), len(data))
+    def archive(self, data, request=None):
+        if request is None:
+            lib.fdb_archive_multiple(self.ctype, ffi.NULL, ffi.from_buffer(data), len(data))
         else:
-            lib.fdb_archive(self.ctype, Key(key).ctype, ffi.from_buffer(data), len(data))
+            lib.fdb_archive_multiple(self.ctype, Request(request).ctype, ffi.from_buffer(data), len(data))
 
     def flush(self):
         lib.fdb_flush(self.ctype)
@@ -268,11 +268,11 @@ class FDB:
 
 fdb = None
 
-def archive(data, key=None):
+def archive(data):
     global fdb
     if not fdb:
         fdb = FDB()
-    fdb.archive(data, key)
+    fdb.archive(data)
 
 
 def list(request):
