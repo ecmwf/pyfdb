@@ -112,7 +112,8 @@ jobs:
         run: |
           cwd=$(pwd)
           export FDB5_CONFIG='{"type":"local","engine":"toc","schema":"'"$cwd"'/tests/default_fdb_schema","spaces":[{"handler":"Default","roots":[{"path":"'"$HOME"'/data/fdb"}]}]}'
-          DYLD_LIBRARY_PATH=${{ env.LD_LIBRARY_PATH }} python3 tests/test.py
+          cd tests
+          DYLD_LIBRARY_PATH=${{ env.LD_LIBRARY_PATH }} python3 test.py
       - name: Documentation
         run: |
           pip install sphinx ipykernel nbsphinx sphinx_rtd_theme 
