@@ -85,7 +85,7 @@ jobs:
           self_build: false
           dependencies: |
             ecmwf/ecbuild@refs/tags/2021.03.0
-            ecmwf/eccodes@refs/tags/2021.03.0
+            ecmwf/eccodes@refs/tags/2.18.0
             ecmwf/eckit@refs/tags/2021.03.0
             ecmwf/metkit@refs/tags/2021.03.0
             ecmwf/fdb@refs/tags/2021.08.0
