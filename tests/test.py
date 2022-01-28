@@ -10,9 +10,9 @@
 
 import shutil
 
-import pyfdb
-
 from pyeccodes import Reader
+
+import pyfdb
 
 fdb = pyfdb.FDB()
 
