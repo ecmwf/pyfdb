@@ -12,9 +12,12 @@ import shutil
 
 import pyfdb
 
+from pyeccodes import Reader
+
 fdb = pyfdb.FDB()
 
-### Archive ###
+# Archive #
+
 key = {
     "domain": "g",
     "stream": "oper",
@@ -41,7 +44,8 @@ filename = "y138-400.grib"
 fdb.archive(open(filename, "rb").read())
 fdb.flush()
 
-### List ###
+# List #
+
 request = {
     "class": "rd",
     "expver": "xxxx",
@@ -80,7 +84,7 @@ for el in fdb.list(request):
 #     print(el)
 
 
-### Retrieve ###
+# Retrieve #
 request = {
     "domain": "g",
     "stream": "oper",
@@ -150,7 +154,6 @@ datareader.seek(0)
 
 print("")
 print("decode GRIB")
-from pyeccodes import Reader
 
 reader = Reader(datareader)
 grib = next(reader)
