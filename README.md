@@ -2,6 +2,8 @@
 
 This repository contains the source code and documentation of pyfdb, a python FDB client which interfaces the FDB5 library in the system.
 
+:warning: This project is BETA and will be experimental for the forseable future. Interfaces and functionality are likely to change, and the project itself may be scrapped. DO NOT use this software in any project/software that is operational.
+
 &nbsp;
 ## 1. Installation
 
