@@ -113,7 +113,7 @@ jobs:
           pip install pytest
           cwd=$(pwd)
           export FDB5_CONFIG='{"type":"local","engine":"toc","schema":"'"$cwd"'/tests/default_fdb_schema","spaces":[{"handler":"Default","roots":[{"path":"'"$HOME"'/data/fdb"}]}]}'
-          DYLD_LIBRARY_PATH=${{ env.LD_LIBRARY_PATH }} pytest -v --cache-clear
+          DYLD_LIBRARY_PATH=${{ env.LD_LIBRARY_PATH }} pytest tests/* -v --cache-clear
       - name: Documentation
         run: |
           pip install sphinx ipykernel nbsphinx sphinx_rtd_theme 
