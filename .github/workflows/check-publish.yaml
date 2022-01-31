@@ -84,11 +84,11 @@ jobs:
         with:
           self_build: false
           dependencies: |
-            ecmwf/ecbuild@refs/tags/2021.03.0
-            ecmwf/eccodes@refs/tags/2.22.0
-            ecmwf/eckit@refs/tags/2021.03.0
-            ecmwf/metkit@refs/tags/2021.03.0
-            ecmwf/fdb@refs/tags/2021.08.0
+            ecmwf/ecbuild@refs/tags/2021.08.0
+            ecmwf/eccodes@refs/tags/2.24.2
+            ecmwf/eckit@refs/tags/1.18.7
+            ecmwf/metkit@refs/tags/1.8.10
+            ecmwf/fdb@refs/tags/5.10.2
           dependency_branch: develop  
       - name: General set up
         run: |
@@ -112,7 +112,8 @@ jobs:
         run: |
           cwd=$(pwd)
           export FDB5_CONFIG='{"type":"local","engine":"toc","schema":"'"$cwd"'/tests/default_fdb_schema","spaces":[{"handler":"Default","roots":[{"path":"'"$HOME"'/data/fdb"}]}]}'
-          DYLD_LIBRARY_PATH=${{ env.LD_LIBRARY_PATH }} python3 tests/test.py
+          cd tests
+          DYLD_LIBRARY_PATH=${{ env.LD_LIBRARY_PATH }} python3 test.py
       - name: Documentation
         run: |
           pip install sphinx ipykernel nbsphinx sphinx_rtd_theme 
