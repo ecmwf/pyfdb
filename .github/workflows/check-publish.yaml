@@ -86,7 +86,7 @@ jobs:
           dependencies: |
             ecmwf/ecbuild@refs/tags/2021.08.0
             ecmwf/eccodes@refs/tags/2.24.2
-            ecmwf/eckit@refs/develop
+            ecmwf/eckit@refs/tags/1.18.7
             ecmwf/metkit@refs/tags/1.8.10
             ecmwf/fdb@refs/tags/5.10.2
           dependency_branch: develop  
