@@ -87,8 +87,8 @@ jobs:
             ecmwf/ecbuild@refs/tags/2021.03.0
             ecmwf/eccodes@refs/tags/2.22.0
             ecmwf/eckit@refs/tags/2021.03.0
-            ecmwf/metkit@refs/tags/2021.03.0
-            ecmwf/fdb@refs/tags/2021.08.0
+            ecmwf/metkit@refs/tags/1.8.10
+            ecmwf/fdb@refs/tags/5.10.2
           dependency_branch: develop  
       - name: General set up
         run: |
