@@ -55,14 +55,14 @@ request = {
     'param': ['138', 155, 't']
 }
 print('direct function, request as dictionary:', request)
-for el in pyfdb.list(request):
-    print(el)
+for el in pyfdb.list(request, False, True):
+    print(el, el['key'].get())
 
 request['levelist'] = ['100', '200', '300', '400', '500', '700', '850', '1000']
 request['param'] = '138'
 print('')
 print('direct function, updated dictionary:', request)
-for el in pyfdb.list(request):
+for el in pyfdb.list(request, False):
     print(el)
 
 
@@ -70,8 +70,8 @@ for el in pyfdb.list(request):
 request['levelist'] = ['400', '500', '700', '850', '1000']
 print('')
 print('fdb object, request as dictionary:', request)
-for el in fdb.list(request):
-    print(el)
+for el in fdb.list(request, False, True):
+    print(el, el['key'].get())
 #
 # print('')
 # print('list ALL:')

@@ -85,7 +85,7 @@ class PatchedLib:
 
         def wrapped_fn(*args, **kwargs):
             retval = fn(*args, **kwargs)
-            if retval != self.__lib.FDB_SUCCESS:
+            if retval != self.__lib.FDB_SUCCESS and retval != self.__lib.FDB_ITERATION_COMPLETE:
                 error_str = "Error in function {}: {}".format(name, ffi.string(self.__lib.fdb_error_string(retval)).decode())
                 raise FDBException(error_str)
             return retval
@@ -100,17 +100,39 @@ class Key:
     __key = None
 
     def __init__(self, keys):
-        key = ffi.new('fdb_key_t**')
-        lib.fdb_new_key(key)
+        if ffi.typeof(keys) == ffi.typeof('fdb_key_t *'):
+            self.__key = keys
+        else:
+            key = ffi.new('fdb_key_t**')
+            lib.fdb_new_key(key)
+            # Set free function
+            self.__key = ffi.gc(key[0], lib.fdb_delete_key)
 
-        # Set free function
-        self.__key = ffi.gc(key[0], lib.fdb_delete_key)
-
-        for k, v in keys.items():
-            self.set(k, v)
+            for k, v in keys.items():
+                self.set(k, v)
 
     def set(self, param, value):
         lib.fdb_key_add(self.__key, ffi.new('const char[]', param.encode('ascii')), ffi.new('const char[]', value.encode('ascii')))
+
+
+# int fdb_key_dict(fdb_key_t* key, fdb_key_dict_t** dict, size_t* lenght);
+# int fdb_delete_key_dict(fdb_key_dict_t* dict);
+
+    def get(self):
+        dictPtr = ffi.new('fdb_key_dict_t**')
+        length = ffi.new("size_t*")
+        lib.fdb_key_dict(self.__key, dictPtr, length)
+        dict = dictPtr[0]
+        
+        out = {}
+        for i in range(0, length[0]):
+            k = ffi.string(dict[i].key).decode('ascii')
+            v = ffi.string(dict[i].value).decode('ascii')
+            out[k] = v
+        
+        lib.fdb_delete_key_dict(dictPtr[0], length[0])
+        return out
+
 
     @property
     def ctype(self):
@@ -149,36 +171,49 @@ class Request:
     def ctype(self):
         return self.__request
 
-
 class ListIterator:
     __iterator = None
-    __seenKeys = []
+    __key = False
 
-    def __init__(self, fdb, request):
-        iterator = ffi.new("fdb_listiterator_t**")
-        lib.fdb_new_listiterator(iterator)
+    def __init__(self, fdb, request, duplicates, key=False):
+        iterator = ffi.new('fdb_listiterator_t**')
+
+        lib.fdb_new_listiterator(iterator, duplicates)
         self.__iterator = ffi.gc(iterator[0], lib.fdb_delete_listiterator)
+        self.__key = key
 
         if request:
             lib.fdb_list(fdb.ctype, Request(request).ctype, self.__iterator)
         else:
             lib.fdb_list(fdb.ctype, ffi.NULL, self.__iterator)
 
-        self.__seenKeys = []
-
     def __iter__(self):
-        elstr = ffi.new("const char**")
+        keyPtr = ffi.new('fdb_key_t**')
+        lib.fdb_new_key(keyPtr)
+        # Set free function
+        key = ffi.gc(keyPtr[0], lib.fdb_delete_key)
 
-        exist = True
-        while exist:
-            cexist = ffi.new("bool*")
-            lib.fdb_listiterator_next(self.__iterator, cexist, elstr)
-            exist = cexist[0]
-            if exist:
-                out = ffi.string(elstr[0]).decode('ascii')
-                if out not in self.__seenKeys:
-                    self.__seenKeys.append(out)
-                    yield out
+        path = ffi.new('char**')
+        off = ffi.new('size_t*')
+        len = ffi.new('size_t*')
+
+        err = 0
+        while err == 0:
+            err = lib.fdb_listiterator_next(self.__iterator)
+            if err == 0:
+
+                lib.fdb_listiterator_attrs(self.__iterator, path, off, len)
+                el = dict(
+                        path = ffi.string(path[0]).decode('ascii'),
+                        offset = off[0],
+                        size = len[0]
+                    )
+                
+                if self.__key:
+                    lib.fdb_listiterator_key(self.__iterator, key)
+                    el['key'] = Key(key)
+                
+                yield el
 
 
 class DataRetriever:
@@ -255,8 +290,8 @@ class FDB:
     def flush(self):
         lib.fdb_flush(self.ctype)
 
-    def list(self, request=None):
-        return ListIterator(self, request)
+    def list(self, request=None, duplicates=False, keys=False):
+        return ListIterator(self, request, duplicates, keys)
 
     def retrieve(self, request):
         return DataRetriever(self, request)
@@ -275,11 +310,11 @@ def archive(data):
     fdb.archive(data)
 
 
-def list(request):
+def list(request, duplicates=False, keys=False):
     global fdb
     if not fdb:
         fdb = FDB()
-    return ListIterator(fdb, request)
+    return ListIterator(fdb, request, duplicates, keys)
 
 
 def retrieve(request):

@@ -4,7 +4,8 @@ int fdb_vcs_version(const char** version);
 enum FdbErrorValues {
     FDB_SUCCESS                  = 0,
     FDB_ERROR_GENERAL_EXCEPTION  = 1,
-    FDB_ERROR_UNKNOWN_EXCEPTION  = 2
+    FDB_ERROR_UNKNOWN_EXCEPTION  = 2,
+    FDB_ITERATION_COMPLETE       = 3
 };
 const char* fdb_error_string(int err);
 typedef void (*fdb_failure_handler_t)(void* context, int error_code);
@@ -20,6 +21,12 @@ struct fdb_datareader_t;
 typedef struct fdb_datareader_t fdb_datareader_t;
 struct fdb_handle_t;
 typedef struct fdb_handle_t fdb_handle_t;
+struct fdb_key_dict_t {
+    char* key;
+    char* value;
+};
+typedef struct fdb_key_dict_t fdb_key_dict_t;
+
 
 int fdb_new_handle(fdb_handle_t** fdb);
 int fdb_archive(fdb_handle_t* fdb, fdb_key_t* key, const char* data, size_t length);
@@ -31,14 +38,18 @@ int fdb_delete_handle(fdb_handle_t* fdb);
 
 int fdb_new_key(fdb_key_t** key);
 int fdb_key_add(fdb_key_t* key, const char* param, const char* value);
+int fdb_key_dict(fdb_key_t* key, fdb_key_dict_t** dict, size_t* length);
+int fdb_delete_key_dict(fdb_key_dict_t* dict, size_t length);
 int fdb_delete_key(fdb_key_t* key);
 
 int fdb_new_request(fdb_request_t** req);
 int fdb_request_add(fdb_request_t* req, const char* param, const char* values[], int numValues);
 int fdb_delete_request(fdb_request_t* req);
 
-int fdb_new_listiterator(fdb_listiterator_t** it);
-int fdb_listiterator_next(fdb_listiterator_t* it, bool* exist, const char** str);
+int fdb_new_listiterator(fdb_listiterator_t** it, bool duplicates);
+int fdb_listiterator_next(fdb_listiterator_t* it);
+int fdb_listiterator_attrs(fdb_listiterator_t* it, char** uri, size_t* off, size_t* len);
+int fdb_listiterator_key(fdb_listiterator_t* it, fdb_key_t* key);
 int fdb_delete_listiterator(fdb_listiterator_t* it);
 
 int fdb_new_datareader(fdb_datareader_t** dr);
