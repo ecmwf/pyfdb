@@ -183,11 +183,16 @@ class ListIterator:
                     )
                 
                 if self.__key:
+                    splitkey = ffi.new('fdb_split_key_t**')
+                    lib.fdb_listiterator_splitkey(self.__iterator, splitkey)
+                    key = ffi.gc(splitkey[0], lib.fdb_delete_splitkey)
+
                     k = ffi.new('const char**')
                     v = ffi.new('const char**')
-                    
+                    level = ffi.new('size_t*')
+
                     meta = dict()
-                    while lib.fdb_listiterator_key_next(self.__iterator, k, v) == 0:
+                    while lib.fdb_splitkey_next_metadata(key, k, v, level) == 0:
                         meta[ffi.string(k[0]).decode('utf-8')] = ffi.string(v[0]).decode('utf-8')
                     el['key'] = meta
                 
