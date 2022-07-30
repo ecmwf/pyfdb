@@ -43,6 +43,9 @@ class PatchedLib:
 
         libName = findlibs.find("fdb5")
 
+        if libName is None:
+            raise RuntimeError("FDB5 library not found")
+
         ffi.cdef(self.__read_header())
         self.__lib = ffi.dlopen(libName)
 
@@ -174,14 +177,14 @@ class ListIterator:
         while err == 0:
             err = lib.fdb_listiterator_next(self.__iterator)
             if err == 0:
-                
+
                 lib.fdb_listiterator_attrs(self.__iterator, path, off, len)
                 el = dict(
                         path = ffi.string(path[0]).decode('utf-8'),
                         offset = off[0],
                         size = len[0]
                     )
-                
+
                 if self.__key:
                     splitkey = ffi.new('fdb_split_key_t**')
                     lib.fdb_listiterator_splitkey(self.__iterator, splitkey)
@@ -195,7 +198,7 @@ class ListIterator:
                     while lib.fdb_splitkey_next_metadata(key, k, v, level) == 0:
                         meta[ffi.string(k[0]).decode('utf-8')] = ffi.string(v[0]).decode('utf-8')
                     el['key'] = meta
-                
+
                 yield el
 
 
@@ -305,4 +308,3 @@ def retrieve(request):
     if not fdb:
         fdb = FDB()
     return DataRetriever(fdb, request)
-
