@@ -58,7 +58,7 @@ print('direct function, request as dictionary:', request)
 for el in pyfdb.list(request, True):
     assert(el['path'])
     assert(el['path'].find('rd:xxxx:oper:20191110:0000:g/an:pl.') != -1)
-    assert(not 'key' in el)
+    assert(not 'keys' in el)
 
 request['levelist'] = ['100', '200', '300', '400', '500', '700', '850', '1000']
 request['param'] = '138'
@@ -69,18 +69,18 @@ it = iter(pyfdb.list(request, True, True))
 el = next(it)
 assert(el['path'])
 assert(el['path'].find('rd:xxxx:oper:20191110:0000:g/an:pl.') != -1)
-assert(el['key'])
-key = el['key']
-assert(key['class'] == 'rd')
-assert(key['levelist'] == '300')
+assert(el['keys'])
+keys = el['keys']
+assert(keys['class'] == 'rd')
+assert(keys['levelist'] == '300')
 
 el = next(it)
 assert(el['path'])
 assert(el['path'].find('rd:xxxx:oper:20191110:0000:g/an:pl.') != -1)
-assert(el['key'])
-key = el['key']
-assert(key['class'] == 'rd')
-assert(key['levelist'] == '400')
+assert(el['keys'])
+keys = el['keys']
+assert(keys['class'] == 'rd')
+assert(keys['levelist'] == '400')
 
 try:
     el = next(it)
@@ -96,10 +96,10 @@ print('fdb object, request as dictionary:', request)
 for el in fdb.list(request, True, True):
     assert(el['path'])
     assert(el['path'].find('rd:xxxx:oper:20191110:0000:g/an:pl.') != -1)
-    assert(el['key'])
-    key = el['key']
-    assert(key['class'] == 'rd')
-    assert(key['levelist'] == '400')
+    assert(el['keys'])
+    keys = el['keys']
+    assert(keys['class'] == 'rd')
+    assert(keys['levelist'] == '400')
     
 
 ### Retrieve ###

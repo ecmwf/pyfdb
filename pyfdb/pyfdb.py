@@ -179,7 +179,7 @@ class ListIterator:
                 el = dict(
                         path = ffi.string(path[0]).decode('utf-8'),
                         offset = off[0],
-                        size = len[0]
+                        length = len[0]
                     )
                 
                 if self.__key:
@@ -194,7 +194,7 @@ class ListIterator:
                     meta = dict()
                     while lib.fdb_splitkey_next_metadata(key, k, v, level) == 0:
                         meta[ffi.string(k[0]).decode('utf-8')] = ffi.string(v[0]).decode('utf-8')
-                    el['key'] = meta
+                    el['keys'] = meta
                 
                 yield el
 
