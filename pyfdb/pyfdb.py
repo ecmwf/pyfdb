@@ -157,15 +157,13 @@ class ListIterator:
 
     def __init__(self, fdb, request, duplicates, key=False):
         iterator = ffi.new('fdb_listiterator_t**')
+        if request:
+            lib.fdb_list(fdb.ctype, Request(request).ctype, iterator, duplicates)
+        else:
+            lib.fdb_list(fdb.ctype, ffi.NULL, iterator, duplicates)
 
-        lib.fdb_new_listiterator(iterator)
         self.__iterator = ffi.gc(iterator[0], lib.fdb_delete_listiterator)
         self.__key = key
-
-        if request:
-            lib.fdb_list(fdb.ctype, Request(request).ctype, duplicates, self.__iterator)
-        else:
-            lib.fdb_list(fdb.ctype, ffi.NULL, duplicates, self.__iterator)
 
     def __iter__(self):
 
