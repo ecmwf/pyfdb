@@ -185,8 +185,10 @@ class ListIterator:
 
                 if self.__key:
                     splitkey = ffi.new('fdb_split_key_t**')
-                    lib.fdb_listiterator_splitkey(self.__iterator, splitkey)
+                    lib.fdb_new_splitkey(splitkey)
                     key = ffi.gc(splitkey[0], lib.fdb_delete_splitkey)
+
+                    lib.fdb_listiterator_splitkey(self.__iterator, key)
 
                     k = ffi.new('const char**')
                     v = ffi.new('const char**')
