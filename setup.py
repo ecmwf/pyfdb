@@ -1,11 +1,20 @@
-from setuptools import setup, find_packages
+import io
+import re
+
+from setuptools import find_packages, setup
+
+__version__ = re.search(
+    r'__version__\s*=\s*[\'"]([^\'"]*)[\'"]', io.open("pyfdb/version.py", encoding="utf_8_sig").read()
+).group(1)
+
 setup(
-    name='pyfdb',
-    install_requires=['cffi','findlibs'],
-    packages = find_packages(),
-    include_package_data = True,
-    description = 'Python interface to FDB',
-    url = 'https://git.ecmwf.int/projects/MARS/repos/pyfdb/browse',
-    author = 'ECMWF',
-    author_email = 'software.support@ecmwf.int',
+    name="pyfdb",
+    version=__version__,
+    description="Python interface to FDB",
+    url="https://github.com/ecmwf/pyfdb",
+    author="ECMWF",
+    author_email="software.support@ecmwf.int",
+    packages=find_packages(exclude=("docs", "tests")),
+    install_requires=["cffi", "findlibs"],
+    zip_safe=False,
 )
