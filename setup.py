@@ -15,6 +15,6 @@ setup(
     author="ECMWF",
     author_email="software.support@ecmwf.int",
     packages=find_packages(exclude=("docs", "tests")),
-    install_requires=["cffi", "findlibs"],
+    install_requires=["cffi", "findlibs", "pyeccodes"],
     zip_safe=False,
 )

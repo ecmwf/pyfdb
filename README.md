@@ -9,7 +9,7 @@ This repository contains the source code and documentation of pyfdb, a python FD
 
 Install pyfdb with python3 (>= 3.6) and pip as follows:
 ```bash
-python3 -m pip install --upgrade git+https://github.com/ecmwf-projects/pyfdb.git@master
+python3 -m pip install --upgrade git+https://github.com/ecmwf/pyfdb.git@master
 ```
 
 Or from PyPi (not yet available):
@@ -21,13 +21,13 @@ Or with the Conda package manager:
 ```bash
 conda create -n client python=3.7
 conda activate client
-python -m pip install --upgrade git+https://github.com/ecmwf-projects/pyfdb.git@master
+python -m pip install --upgrade git+https://github.com/ecmwf/pyfdb.git@master
 ```
 
 &nbsp;
 ## 2. Example
 
-An example of archival, listing and retrieval via pyfdb is shown next. For the example to work, FDB5 must be installed in the system, as well as the shutil, pyeccodes and pyfdb python packages. The GRIB files involved can be found under the `tests/unit/` folder in the pyfdb Git repository (https://github.com/ecmwf-projects/pyfdb).
+An example of archival, listing and retrieval via pyfdb is shown next. For the example to work, FDB5 must be installed in the system, as well as the shutil, pyeccodes and pyfdb python packages. The GRIB files involved can be found under the `tests/unit/` folder in the pyfdb Git repository (https://github.com/ecmwf/pyfdb).
 
 ### Initialising FDB
 ```python
@@ -84,9 +84,9 @@ request = {
     'param': ['138', 155, 't']
 }
 
-for el in pyfdb.list(request):
-    print(el)
-# {class=rd,expver=xxxx,stream=oper,date=20191110,time=0000,domain=g}{type=an,levtype=pl}{step=0,levelist=300,param=138}
+for el in pyfdb.list(request, True, True):
+    print(el['keys'])
+# {'class': 'rd', 'date': '20191110', 'domain': 'g', 'expver': 'xxxx', 'stream': 'oper', 'time': '0000', 'levtype': 'pl', 'type': 'an', 'levelist': '300', 'param': '138', 'step': '0'}
 ```
 
 #### direct function, updated dictionary
@@ -94,25 +94,19 @@ for el in pyfdb.list(request):
 request['levelist'] = ['100', '200', '300', '400', '500', '700', '850', '1000']
 request['param'] = '138'
 
-for el in pyfdb.list(request):
-    print(el)
-# {class=rd,expver=xxxx,stream=oper,date=20191110,time=0000,domain=g}{type=an,levtype=pl}{step=0,levelist=300,param=138}
-# {class=rd,expver=xxxx,stream=oper,date=20191110,time=0000,domain=g}{type=an,levtype=pl}{step=0,levelist=400,param=138}
+for el in pyfdb.list(request, True, True):
+    print(el['keys'])
+# {'class': 'rd', 'date': '20191110', 'domain': 'g', 'expver': 'xxxx', 'stream': 'oper', 'time': '0000', 'levtype': 'pl', 'type': 'an', 'levelist': '300', 'param': '138', 'step': '0'}
+# {'class': 'rd', 'date': '20191110', 'domain': 'g', 'expver': 'xxxx', 'stream': 'oper', 'time': '0000', 'levtype': 'pl', 'type': 'an', 'levelist': '400', 'param': '138', 'step': '0'}
 ```
 
 #### fdb object, request as dicitonary
 As an alternative, use the created FDB instance and start queries from there
 ```python
 request['levelist'] = ['400', '500', '700', '850', '1000']
-for el in fdb.list(request):
+for el in fdb.list(request, True, True):
     print(el)
-# {class=rd,expver=xxxx,stream=oper,date=20191110,time=0000,domain=g}{type=an,levtype=pl}{step=0,levelist=400,param=138}
-
-for el in fdb.list():
-     print(el)
-# {class=rd,expver=xxxx,stream=oper,date=20191110,time=0000,domain=g}{type=an,levtype=pl}{step=0,levelist=300,param=138}
-# {class=rd,expver=xxxx,stream=oper,date=20191110,time=0000,domain=g}{type=an,levtype=pl}{step=0,levelist=400,param=138}
-# {class=rd,expver=xxxy,stream=oper,date=20191110,time=0000,domain=g}{type=an,levtype=pl}{step=0,levelist=400,param=138}
+# {'class': 'rd', 'date': '20191110', 'domain': 'g', 'expver': 'xxxx', 'stream': 'oper', 'time': '0000', 'levtype': 'pl', 'type': 'an', 'levelist': '400', 'param': '138', 'step': '0'}
 ```
 
 ### Retrieve
