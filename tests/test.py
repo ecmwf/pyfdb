@@ -173,8 +173,8 @@ datareader.seek(0)
 
 print('')
 print('decode GRIB')
-from pyeccodes import Reader
-reader = Reader(datareader)
+from eccodes import StreamReader
+reader = StreamReader(datareader)
 grib = next(reader)
 grib.dump()
 

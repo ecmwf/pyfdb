@@ -2,7 +2,7 @@
 
 This repository contains the source code and documentation of pyfdb, a python FDB client which interfaces the FDB5 library in the system.
 
-:warning: This project is BETA and will be experimental for the forseable future. Interfaces and functionality are likely to change.
+:warning: This project is BETA and will be experimental for the foreseeable future. Interfaces and functionality are likely to change.
 
 &nbsp;
 ## 1. Installation
@@ -27,7 +27,7 @@ python -m pip install --upgrade git+https://github.com/ecmwf/pyfdb.git@master
 &nbsp;
 ## 2. Example
 
-An example of archival, listing and retrieval via pyfdb is shown next. For the example to work, FDB5 must be installed in the system, as well as the shutil, pyeccodes and pyfdb python packages. The GRIB files involved can be found under the `tests/unit/` folder in the pyfdb Git repository (https://github.com/ecmwf/pyfdb).
+An example of archival, listing and retrieval via pyfdb is shown next. For the example to work, FDB5 must be installed in the system, as well as the shutil, eccodes-python and pyfdb python packages. The GRIB files involved can be found under the `tests/unit/` folder in the pyfdb Git repository (https://github.com/ecmwf/pyfdb).
 
 ### Initialising FDB
 ```python
@@ -176,8 +176,8 @@ datareader.seek(0)
 
 #### decode GRIB
 ```python
-from pyeccodes import Reader
-reader = Reader(datareader)
+from eccodes import StreamReader
+reader = StreamReader(datareader)
 grib = next(reader)
 grib.dump()
 # [...redacted...]

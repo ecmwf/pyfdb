@@ -29,7 +29,7 @@ Or with the Conda package manager:
 2. Example
 ----------
 
-An example of archival, listing and retrieval via pyfdb is shown next. For the example to work, FDB5 must be installed in the system, as well as the shutil, pyeccodes and pyfdb python packages. The GRIB files involved can be found under the :code:`tests/unit/` folder in the pyfdb Git repository (https://github.com/ecmwf-projects/pyfdb).
+An example of archival, listing and retrieval via pyfdb is shown next. For the example to work, FDB5 must be installed in the system, as well as the shutil, eccodes-python and pyfdb python packages. The GRIB files involved can be found under the :code:`tests/unit/` folder in the pyfdb Git repository (https://github.com/ecmwf-projects/pyfdb).
 
 **Initialising FDB**
 
@@ -194,8 +194,8 @@ As an alternative, use the created FDB instance and start queries from there
 
 .. code:: python
 
-   from pyeccodes import Reader
-   reader = Reader(datareader)
+   from eccodes import StreamReader
+   reader = StreamReader(datareader)
    grib = next(reader)
    grib.dump()
    # [...redacted...]
