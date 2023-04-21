@@ -9,12 +9,13 @@
 # does it submit to any jurisdiction.
 
 import shutil
+from eccodes import StreamReader
 
 import pyfdb
 
 fdb = pyfdb.FDB()
 
-### Archive ###
+# Archive
 key = {
     "domain": "g",
     "stream": "oper",
@@ -41,7 +42,7 @@ filename = "y138-400.grib"
 fdb.archive(open(filename, "rb").read())
 fdb.flush()
 
-### List ###
+# List
 request = {
     "class": "rd",
     "expver": "xxxx",
@@ -59,7 +60,7 @@ print("direct function, request as dictionary:", request)
 for el in pyfdb.list(request, True):
     assert el["path"]
     assert el["path"].find("rd:xxxx:oper:20191110:0000:g/an:pl.") != -1
-    assert not "keys" in el
+    assert "keys" not in el
 
 request["levelist"] = ["100", "200", "300", "400", "500", "700", "850", "1000"]
 request["param"] = "138"
@@ -103,7 +104,7 @@ for el in fdb.list(request, True, True):
     assert keys["levelist"] == "400"
 
 
-### Retrieve ###
+# Retrieve
 request = {
     "domain": "g",
     "stream": "oper",
@@ -173,7 +174,6 @@ datareader.seek(0)
 
 print("")
 print("decode GRIB")
-from eccodes import StreamReader
 
 reader = StreamReader(datareader)
 grib = next(reader)
