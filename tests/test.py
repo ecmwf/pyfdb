@@ -9,6 +9,7 @@
 # does it submit to any jurisdiction.
 
 import shutil
+
 from eccodes import StreamReader
 
 import pyfdb
