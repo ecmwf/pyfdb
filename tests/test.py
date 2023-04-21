@@ -8,8 +8,9 @@
 # granted to it by virtue of its status as an intergovernmental organisation nor
 # does it submit to any jurisdiction.
 
-import pyfdb
 import shutil
+
+import pyfdb
 
 fdb = pyfdb.FDB()
 
@@ -174,6 +175,7 @@ datareader.seek(0)
 print('')
 print('decode GRIB')
 from eccodes import StreamReader
+
 reader = StreamReader(datareader)
 grib = next(reader)
 grib.dump()

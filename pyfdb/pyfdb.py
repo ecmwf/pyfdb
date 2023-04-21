@@ -12,12 +12,12 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import os
 from collections.abc import Iterable
 
 import cffi
-import os
-from pkg_resources import parse_version
 import findlibs
+from pkg_resources import parse_version
 
 __version__ = '0.0.1'
 
