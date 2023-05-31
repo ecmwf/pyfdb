@@ -27,6 +27,7 @@ jobs:
 
   checks:
     strategy:
+      fail-fast: false
       matrix:
         name:
         - gnu-10@ubuntu-20.04
