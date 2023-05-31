@@ -27,7 +27,7 @@ python -m pip install --upgrade git+https://github.com/ecmwf/pyfdb.git@master
 &nbsp;
 ## 2. Example
 
-An example of archival, listing and retrieval via pyfdb is shown next. For the example to work, FDB5 must be installed in the system, as well as the shutil, eccodes-python and pyfdb python packages. The GRIB files involved can be found under the `tests/unit/` folder in the pyfdb Git repository (https://github.com/ecmwf/pyfdb).
+An example of archival, listing and retrieval via pyfdb is shown next. For the example to work, FDB5 must be installed in the system, as well as the shutil, eccodes-python and pyfdb python packages. The GRIB files involved can be found under the `tests/` folder in the pyfdb Git repository (https://github.com/ecmwf/pyfdb).
 
 ### Initialising FDB
 ```python
