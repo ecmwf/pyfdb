@@ -7,7 +7,7 @@
 # In applying this licence, ECMWF does not waive the privileges and immunities
 # granted to it by virtue of its status as an intergovernmental organisation nor
 # does it submit to any jurisdiction.
-
+import os
 import pyfdb
 import shutil
 
@@ -28,15 +28,15 @@ key = {
     'expver': 'xxxx'
 }
 
-filename = 'x138-300.grib'
+filename = os.path.join(os.path.dirname(__file__), "x138-300.grib")
 fdb.archive(open(filename, "rb").read(), key)
 
 key['levelist'] = '400'
-filename = 'x138-400.grib'
+filename = os.path.join(os.path.dirname(__file__), "x138-400.grib")
 pyfdb.archive(open(filename, "rb").read())
 
 key['expver'] = 'xxxy'
-filename = 'y138-400.grib'
+filename = os.path.join(os.path.dirname(__file__), "y138-400.grib")
 fdb.archive(open(filename, "rb").read())
 fdb.flush()
 
@@ -117,20 +117,20 @@ request = {
     'type': 'an'
 }
 
-filename = 'x138-300bis.grib'
+filename = os.path.join(os.path.dirname(__file__), "x138-300bis.grib")
 print('')
 print('save to file ', filename)
 with open(filename, 'wb') as o, fdb.retrieve(request) as i:
     shutil.copyfileobj(i, o)
 
 request['levelist'] = '400'
-filename = 'x138-400bis.grib'
+filename = os.path.join(os.path.dirname(__file__), "x138-400bis.grib")
 print('save to file ', filename)
 with open(filename, 'wb') as o, fdb.retrieve(request) as i:
     shutil.copyfileobj(i, o)
 
 request['expver'] = 'xxxy'
-filename = 'y138-400bis.grib'
+filename = os.path.join(os.path.dirname(__file__), "y138-400bis.grib")
 print('save to file ', filename)
 with open(filename, 'wb') as o, pyfdb.retrieve(request) as i:
     shutil.copyfileobj(i, o)
@@ -180,7 +180,7 @@ grib.dump()
 
 request['levelist'] = [300, '400']
 request['expver'] = 'xxxx'
-filename = 'foo.grib'
+filename = os.path.join(os.path.dirname(__file__), "foo.grib")
 
 print('')
 print('save to file ', filename)
