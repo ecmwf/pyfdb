@@ -14,4 +14,6 @@ build:
   env:
     - ECCODES_SAMPLES_PATH=$ECCODES_DIR/share/eccodes/samples
     - ECCODES_DEFINITION_PATH=$ECCODES_DIR/share/eccodes/definitions
-    - FDB5_CONFIG='{"type":"local","engine":"toc","schema":"'"$TMPDIR"'/pyfdb/tests/default_fdb_schema","spaces":[{"handler":"Default","roots":[{"path":"'"$TMPDIR"'/pyfdb/data/fdb"}]}]}'
+    - FDB5_CONFIG='{"type":"local","engine":"toc","schema":"'"$TMPDIR"'/pyfdb/tests/default_fdb_schema","spaces":[{"handler":"Default","roots":[{"path":"'"$TMPDIR"'/data/fdb"}]}]}'
+  mkdir:
+    - data/fdb
