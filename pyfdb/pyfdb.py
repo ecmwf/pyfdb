@@ -151,6 +151,38 @@ class Request:
     def ctype(self):
         return self.__request
 
+class Axes:
+    __axes = None
+
+    def __init__(self):
+        newaxes = ffi.new('fdb_axes_t**')
+        lib.fdb_new_axes(newaxes)
+        self.__axes= ffi.gc(newaxes[0], lib.fdb_delete_axes)
+
+    def get_keys(self):
+        # returns a copy of the axes keys as a list
+
+        # XXX I think cffi pointers take ownership of such that keys does not produce a leak here.
+        # Though not 100%. TODO investigate this.
+        keys = ffi.new('const char***')
+        Nkeys = ffi.new('size_t*')
+        lib.fdb_getkeys_axes(self.__axes, keys, Nkeys)
+        return [ffi.string(keys[0][i]).decode('ascii') for i in range(0, Nkeys[0])]
+
+    def get_values(self, key):
+        # returns a copy of the values for a given key (python string) as a list
+        values = ffi.new('const char***')
+        Nvalues = ffi.new('size_t*')
+        lib.fdb_getvalues_axes(self.__axes, ffi.new('const char[]', key.encode('ascii')), values, Nvalues)
+        return [ffi.string(values[0][i]).decode('ascii') for i in range(0, Nvalues[0])]
+
+    def as_dict(self):
+        return {key: self.get_values(key) for key in self.get_keys()}
+
+    @property
+    def ctype(self):
+        return self.__axes
+
 class ListIterator:
     __iterator = None
     __key = False
@@ -278,6 +310,12 @@ class FDB:
 
     def list(self, request=None, duplicates=False, keys=False):
         return ListIterator(self, request, duplicates, keys)
+
+    def axes(self, request):
+        if not request: raise RuntimeError("Request must not be empty")
+        axes = Axes()
+        x = lib.fdb_axes(self.ctype, Request(request).ctype, axes.ctype)
+        return axes
 
     def retrieve(self, request):
         return DataRetriever(self, request)

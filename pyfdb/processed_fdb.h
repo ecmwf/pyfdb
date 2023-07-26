@@ -23,6 +23,13 @@ int fdb_new_request(fdb_request_t** req);
 int fdb_request_add(fdb_request_t* req, const char* param, const char* values[], int numValues);
 int fdb_delete_request(fdb_request_t* req);
 
+struct fdb_axes_t;
+typedef struct fdb_request_t fdb_axes_t;
+int fdb_new_axes(fdb_axes_t** axes);
+int fdb_getkeys_axes(fdb_axes_t* axes, const char*** keys, size_t* size);
+int fdb_getvalues_axes(fdb_axes_t* axes, const char* key, const char*** values, size_t* size);
+int fdb_delete_axes(fdb_axes_t* axes);
+
 struct fdb_split_key_t;
 typedef struct fdb_split_key_t fdb_split_key_t;
 int fdb_new_splitkey(fdb_split_key_t** key);
@@ -56,3 +63,4 @@ int fdb_list(fdb_handle_t* fdb, const fdb_request_t* req, fdb_listiterator_t** i
 int fdb_retrieve(fdb_handle_t* fdb, fdb_request_t* req, fdb_datareader_t* dr);
 int fdb_flush(fdb_handle_t* fdb);
 int fdb_delete_handle(fdb_handle_t* fdb);
+int fdb_axes(fdb_handle_t* fdb, const fdb_request_t* req, fdb_axes_t* axes);
