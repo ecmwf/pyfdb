@@ -90,7 +90,7 @@ jobs:
             ecmwf/eckit@refs/tags/1.18.7
             ecmwf/metkit@refs/tags/1.8.10
             ecmwf/fdb@refs/tags/5.10.2
-          dependency_branch: develop  
+          dependency_branch: develop
       - name: General set up
         run: |
           mkdir -p $HOME/data/fdb
@@ -117,7 +117,7 @@ jobs:
           DYLD_LIBRARY_PATH=${{ env.LD_LIBRARY_PATH }} python3 test.py
       - name: Documentation
         run: |
-          pip install sphinx ipykernel nbsphinx sphinx_rtd_theme 
+          pip install sphinx ipykernel nbsphinx sphinx_rtd_theme
           make clean
           make html
         working-directory: docs
