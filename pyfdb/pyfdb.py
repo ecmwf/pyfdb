@@ -317,6 +317,43 @@ class FDB:
         x = lib.fdb_axes(self.ctype, Request(request).ctype, axes.ctype)
         return axes
 
+    # todo: refactor to have one polyreq object, not one per request
+    def extract(self, requests):
+        # requests is a list of tuples (key, ranges)
+        ranges = []
+        for r in requests:
+            ranges.append(r[1])
+        N = len(requests)
+
+        # fighting with the garbage collector...
+        keepalive_keys = [Request(r[0]) for r in requests]
+        keepalive_polyreqs = [ffi.new('fdb_polyrequest_t**') for i in range(N)]
+        allpolyreqs = ffi.new('fdb_polyrequest_t*[]', N)
+        for i in range(N):
+            ranges_array = ffi.new('long[][2]', ranges[i])
+            lib.fdb_new_polyrequest(keepalive_polyreqs[i], keepalive_keys[i].ctype, ranges_array, len(ranges[i]))
+            allpolyreqs[i] = keepalive_polyreqs[i][0]
+
+        x = lib.fdb_extract(self.ctype, allpolyreqs, N)
+
+        # now need to extract values from the polyreqs
+        allvalues = []
+        for i, polyreq in enumerate(allpolyreqs):
+            nranges = len(ranges[i])
+            values = ffi.new('double*[]', nranges)
+            keepalive = [ffi.new('double[]', ranges[i][j][1] - ranges[i][j][0]) for j in range(nranges)]
+            for j in range(nranges): values[j] = keepalive[j]
+
+            lib.fdb_polyrequest_getvalues(polyreq, values)
+
+            allvalues.append([])
+            for j in range(nranges):
+                span = ranges[i][j][1] - ranges[i][j][0]
+                # need to copy the values out of the cffi array
+                allvalues[-1].append([values[j][k] for k in range(span)])
+
+        return allvalues
+
     def retrieve(self, request):
         return DataRetriever(self, request)
 

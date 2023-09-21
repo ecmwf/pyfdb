@@ -30,6 +30,12 @@ int fdb_getkeys_axes(fdb_axes_t* axes, const char*** keys, size_t* size);
 int fdb_getvalues_axes(fdb_axes_t* axes, const char* key, const char*** values, size_t* size);
 int fdb_delete_axes(fdb_axes_t* axes);
 
+struct fdb_polyrequest_t;
+typedef struct fdb_polyrequest_t fdb_polyrequest_t;
+int fdb_new_polyrequest(fdb_polyrequest_t** polyreq, fdb_request_t* req, long ranges[][2], size_t num_ranges);
+int fdb_polyrequest_getvalues(fdb_polyrequest_t* polyreq, double* values[]);
+int fdb_delete_polyrequest(fdb_polyrequest_t* polyreq);
+
 struct fdb_split_key_t;
 typedef struct fdb_split_key_t fdb_split_key_t;
 int fdb_new_splitkey(fdb_split_key_t** key);
@@ -64,3 +70,4 @@ int fdb_retrieve(fdb_handle_t* fdb, fdb_request_t* req, fdb_datareader_t* dr);
 int fdb_flush(fdb_handle_t* fdb);
 int fdb_delete_handle(fdb_handle_t* fdb);
 int fdb_axes(fdb_handle_t* fdb, const fdb_request_t* req, fdb_axes_t* axes);
+int fdb_extract(fdb_handle_t* fdb, fdb_polyrequest_t* polyreqs[], size_t length);
