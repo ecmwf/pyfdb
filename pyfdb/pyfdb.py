@@ -319,38 +319,55 @@ class FDB:
 
     # todo: refactor to have one polyreq object, not one per request
     def extract(self, requests):
-        # requests is a list of tuples (key, ranges)
-        ranges = []
-        for r in requests:
-            ranges.append(r[1])
+        # requests is a list of tuples: [(key, ranges), (key, ranges), ...]
         N = len(requests)
 
         # fighting with the garbage collector...
-        keepalive_keys = [Request(r[0]) for r in requests]
-        keepalive_polyreqs = [ffi.new('fdb_polyrequest_t**') for i in range(N)]
-        allpolyreqs = ffi.new('fdb_polyrequest_t*[]', N)
-        for i in range(N):
-            ranges_array = ffi.new('long[][2]', ranges[i])
-            lib.fdb_new_polyrequest(keepalive_polyreqs[i], keepalive_keys[i].ctype, ranges_array, len(ranges[i]))
-            allpolyreqs[i] = keepalive_polyreqs[i][0]
+        polyreq_list = [ffi.new('fdb_polyrequest_t**') for i in range(N)] # python list of cffi pointers
+        polyreqs_c = ffi.new('fdb_polyrequest_t*[]', N) # cffi array of pointers
+        for i, req in enumerate(requests):
+            key = Request(req[0])
+            ranges_c = ffi.new('long[][2]', req[1])
+            lib.fdb_new_polyrequest(polyreq_list[i], key.ctype, ranges_c, len(req[1]))
+            polyreqs_c[i] = polyreq_list[i][0]
 
-        x = lib.fdb_extract(self.ctype, allpolyreqs, N)
+        assert lib.fdb_extract(self.ctype, polyreqs_c, N) == 0
 
-        # now need to extract values from the polyreqs
+        # extract values from the polyreqs into something more python friendly
         allvalues = []
-        for i, polyreq in enumerate(allpolyreqs):
-            nranges = len(ranges[i])
-            values = ffi.new('double*[]', nranges)
-            keepalive = [ffi.new('double[]', ranges[i][j][1] - ranges[i][j][0]) for j in range(nranges)]
-            for j in range(nranges): values[j] = keepalive[j]
+        for i, polyreq in enumerate(polyreqs_c):
+            ranges = requests[i][1]
+            nranges = len(ranges)
+            
+            request_data = []
+            allvalues.append(request_data) # one list per request
+            Nfields = ffi.new('size_t*')
+            assert lib.fdb_polyrequest_nfields(polyreq, Nfields) == 0
+            Nfields = Nfields[0]
+            for ifield in range(Nfields):
+                value_data, mask_data = [], []
+                field_data = (value_data, mask_data)
+                request_data.append(field_data)
 
-            lib.fdb_polyrequest_getvalues(polyreq, values)
+                # allocate arrays for the values
+                values_list = [ffi.new('double[]', ranges[j][1] - ranges[j][0]) for j in range(nranges)]
+                mask_list = [ffi.new('uint64_t[]', 1 + (ranges[j][1] - ranges[j][0])//64) for j in range(nranges)]
 
-            allvalues.append([])
-            for j in range(nranges):
-                span = ranges[i][j][1] - ranges[i][j][0]
-                # need to copy the values out of the cffi array
-                allvalues[-1].append([values[j][k] for k in range(span)])
+                # point to each of the arrays
+                values_arr = ffi.new('double*[]', nranges)
+                mask_arr = ffi.new('uint64_t*[]', nranges)
+                for j in range(nranges): 
+                    values_arr[j] = values_list[j]
+                    mask_arr[j] = mask_list[j]
+
+                # populate the arrays
+                assert lib.fdb_polyrequest_getvalues(polyreq, ifield, values_arr, mask_arr) == 0
+
+                # and copy into python land
+                for j in range(nranges):
+                    span = ranges[j][1] - ranges[j][0]
+                    value_data.append([float(values_arr[j][k]) for k in range(span)])
+                    mask_data.append([int(mask_arr[j][k]) for k in range(1 + (span//64))])
 
         return allvalues
 

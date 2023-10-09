@@ -33,9 +33,9 @@ int fdb_delete_axes(fdb_axes_t* axes);
 struct fdb_polyrequest_t;
 typedef struct fdb_polyrequest_t fdb_polyrequest_t;
 int fdb_new_polyrequest(fdb_polyrequest_t** polyreq, fdb_request_t* req, long ranges[][2], size_t num_ranges);
-int fdb_polyrequest_getvalues(fdb_polyrequest_t* polyreq, double* values[]);
+int fdb_polyrequest_nfields(fdb_polyrequest_t* polyreq, size_t* Nfields);
+int fdb_polyrequest_getvalues(fdb_polyrequest_t* polyreq, size_t ifield, double* values_arr[], uint64_t* mask_arr[]);
 int fdb_delete_polyrequest(fdb_polyrequest_t* polyreq);
-
 struct fdb_split_key_t;
 typedef struct fdb_split_key_t fdb_split_key_t;
 int fdb_new_splitkey(fdb_split_key_t** key);
