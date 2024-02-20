@@ -18,6 +18,7 @@ import cffi
 import os
 from pkg_resources import parse_version
 import findlibs
+import io
 
 __version__ = '0.0.1'
 
@@ -165,44 +166,47 @@ class ListIterator:
         self.__iterator = ffi.gc(iterator[0], lib.fdb_delete_listiterator)
         self.__key = key
 
-    def __iter__(self):
+        self.path = ffi.new('const char**')
+        self.off = ffi.new('size_t*')
+        self.len = ffi.new('size_t*')
+    def __next__(self):
+        err = lib.fdb_listiterator_next(self.__iterator)
+        
+        if err != 0:
+            raise StopIteration
 
-        path = ffi.new('const char**')
-        off = ffi.new('size_t*')
-        len = ffi.new('size_t*')
+        lib.fdb_listiterator_attrs(self.__iterator, self.path, self.off, self.len)
+        el = dict(
+                path = ffi.string(self.path[0]).decode('utf-8'),
+                offset = self.off[0],
+                length = self.len[0]
+            )
 
-        err = 0
-        while err == 0:
-            err = lib.fdb_listiterator_next(self.__iterator)
-            if err == 0:
+        if self.__key:
+            splitkey = ffi.new('fdb_split_key_t**')
+            lib.fdb_new_splitkey(splitkey)
+            key = ffi.gc(splitkey[0], lib.fdb_delete_splitkey)
 
-                lib.fdb_listiterator_attrs(self.__iterator, path, off, len)
-                el = dict(
-                        path = ffi.string(path[0]).decode('utf-8'),
-                        offset = off[0],
-                        length = len[0]
-                    )
+            lib.fdb_listiterator_splitkey(self.__iterator, key)
 
-                if self.__key:
-                    splitkey = ffi.new('fdb_split_key_t**')
-                    lib.fdb_new_splitkey(splitkey)
-                    key = ffi.gc(splitkey[0], lib.fdb_delete_splitkey)
+            k = ffi.new('const char**')
+            v = ffi.new('const char**')
+            level = ffi.new('size_t*')
 
-                    lib.fdb_listiterator_splitkey(self.__iterator, key)
+            meta = dict()
+            while lib.fdb_splitkey_next_metadata(key, k, v, level) == 0:
+                meta[ffi.string(k[0]).decode('utf-8')] = ffi.string(v[0]).decode('utf-8')
+            el['keys'] = meta
 
-                    k = ffi.new('const char**')
-                    v = ffi.new('const char**')
-                    level = ffi.new('size_t*')
+        return el
 
-                    meta = dict()
-                    while lib.fdb_splitkey_next_metadata(key, k, v, level) == 0:
-                        meta[ffi.string(k[0]).decode('utf-8')] = ffi.string(v[0]).decode('utf-8')
-                    el['keys'] = meta
-
-                yield el
+    def __iter__(self): return self
 
 
-class DataRetriever:
+
+
+
+class DataRetriever(io.RawIOBase):
     __dataread = None
     __opened = False
 
@@ -230,7 +234,9 @@ class DataRetriever:
         if isinstance(count, int):
             lib.fdb_datareader_skip(self.__dataread, count)
 
-    def seek(self, where):
+    def seek(self, where, whence=io.SEEK_SET):
+        if whence != io.SEEK_SET:
+            raise NotImplementedError(f"SEEK_CUR and SEEK_END are not currently supported on {self.__class__.__name__} objects")
         self.open()
         if isinstance(where, int):
             lib.fdb_datareader_seek(self.__dataread, where)
