@@ -8,3 +8,5 @@ dist/
 **/build
 *.grib
 !data/*.grib
+venv
+**/_build
