@@ -12,14 +12,13 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from collections.abc import Iterable
+import os
 
 import cffi
-import os
-from pkg_resources import parse_version
 import findlibs
+from pkg_resources import parse_version
 
-__version__ = '0.0.1'
+__version__ = "0.0.1"
 
 __fdb_version__ = "5.6.0"
 
@@ -37,6 +36,7 @@ class PatchedLib:
     Finds the header file associated with the FDB C API and parses it, loads the shared library,
     and patches the accessors with automatic python-C error handling.
     """
+
     __type_names = {}
 
     def __init__(self):
@@ -69,15 +69,15 @@ class PatchedLib:
 
         # Check the library version
 
-        tmp_str = ffi.new('char**')
+        tmp_str = ffi.new("char**")
         self.fdb_version(tmp_str)
-        versionstr = ffi.string(tmp_str[0]).decode('utf-8')
+        versionstr = ffi.string(tmp_str[0]).decode("utf-8")
 
         if parse_version(versionstr) < parse_version(__fdb_version__):
             raise RuntimeError("Version of libfdb found is too old. {} < {}".format(versionstr, __fdb_version__))
 
     def __read_header(self):
-        with open(os.path.join(os.path.dirname(__file__), 'processed_fdb.h'), 'r') as f:
+        with open(os.path.join(os.path.dirname(__file__), "processed_fdb.h"), "r") as f:
             return f.read()
 
     def __check_error(self, fn, name):
@@ -89,24 +89,29 @@ class PatchedLib:
         def wrapped_fn(*args, **kwargs):
             retval = fn(*args, **kwargs)
             if retval != self.__lib.FDB_SUCCESS and retval != self.__lib.FDB_ITERATION_COMPLETE:
-                error_str = "Error in function {}: {}".format(name, ffi.string(self.__lib.fdb_error_string(retval)).decode())
+                error_str = "Error in function {}: {}".format(
+                    name, ffi.string(self.__lib.fdb_error_string(retval)).decode()
+                )
                 raise FDBException(error_str)
             return retval
 
         return wrapped_fn
 
+
 # Bootstrap the library
 
 lib = PatchedLib()
 
+
 class Key:
     """!
-        Key for the FDB indexing and storing
+    Key for the FDB indexing and storing
     """
+
     __key = None
 
     def __init__(self, keys):
-        key = ffi.new('fdb_key_t**')
+        key = ffi.new("fdb_key_t**")
         lib.fdb_new_key(key)
         # Set free function
         self.__key = ffi.gc(key[0], lib.fdb_delete_key)
@@ -116,12 +121,14 @@ class Key:
 
     def set(self, param, value):
         """!
-            Add a param and its corresponding value
+        Add a param and its corresponding value
 
-            @param param Parameter which should be added
-            @param value Value of the Parameter which should be added
+        @param param Parameter which should be added
+        @param value Value of the Parameter which should be added
         """
-        lib.fdb_key_add(self.__key, ffi.new('const char[]', param.encode('ascii')), ffi.new('const char[]', value.encode('ascii')))
+        lib.fdb_key_add(
+            self.__key, ffi.new("const char[]", param.encode("ascii")), ffi.new("const char[]", value.encode("ascii"))
+        )
 
     @property
     def ctype(self):
@@ -130,12 +137,13 @@ class Key:
 
 class Request:
     """!
-        Request class for the FDB requests as need for the list() function of the FDB
+    Request class for the FDB requests as need for the list() function of the FDB
     """
+
     __request = None
 
     def __init__(self, request):
-        newrequest = ffi.new('fdb_request_t**')
+        newrequest = ffi.new("fdb_request_t**")
 
         # we assume a retrieve request represented as a dictionary
         lib.fdb_new_request(newrequest)
@@ -145,33 +153,38 @@ class Request:
             self.value(name, values)
 
     def value(self, name, values):
-        if name and name != 'verb':
+        if name and name != "verb":
             cvals = []
             if isinstance(values, (str, int)):
                 values = [values]
             for value in values:
                 if isinstance(value, int):
                     value = str(value)
-                cval = ffi.new("const char[]", value.encode('ascii'))
+                cval = ffi.new("const char[]", value.encode("ascii"))
                 cvals.append(cval)
 
-            lib.fdb_request_add(self.__request,
-                                ffi.new('const char[]', name.encode('ascii')),
-                                ffi.new('const char*[]', cvals), len(values))
+            lib.fdb_request_add(
+                self.__request,
+                ffi.new("const char[]", name.encode("ascii")),
+                ffi.new("const char*[]", cvals),
+                len(values),
+            )
 
     @property
     def ctype(self):
         return self.__request
 
+
 class ListIterator:
     """!
-        List iterator class, returned by a list function call from the FDB
+    List iterator class, returned by a list function call from the FDB
     """
+
     __iterator = None
     __key = False
 
     def __init__(self, fdb, request, duplicates, key=False):
-        iterator = ffi.new('fdb_listiterator_t**')
+        iterator = ffi.new("fdb_listiterator_t**")
         if request:
             lib.fdb_list(fdb.ctype, Request(request).ctype, iterator, duplicates)
         else:
@@ -182,9 +195,9 @@ class ListIterator:
 
     def __iter__(self):
 
-        path = ffi.new('const char**')
-        off = ffi.new('size_t*')
-        len = ffi.new('size_t*')
+        path = ffi.new("const char**")
+        off = ffi.new("size_t*")
+        len = ffi.new("size_t*")
 
         err = 0
         while err == 0:
@@ -192,51 +205,48 @@ class ListIterator:
             if err == 0:
 
                 lib.fdb_listiterator_attrs(self.__iterator, path, off, len)
-                el = dict(
-                        path = ffi.string(path[0]).decode('utf-8'),
-                        offset = off[0],
-                        length = len[0]
-                    )
+                el = dict(path=ffi.string(path[0]).decode("utf-8"), offset=off[0], length=len[0])
 
                 if self.__key:
-                    splitkey = ffi.new('fdb_split_key_t**')
+                    splitkey = ffi.new("fdb_split_key_t**")
                     lib.fdb_new_splitkey(splitkey)
                     key = ffi.gc(splitkey[0], lib.fdb_delete_splitkey)
 
                     lib.fdb_listiterator_splitkey(self.__iterator, key)
 
-                    k = ffi.new('const char**')
-                    v = ffi.new('const char**')
-                    level = ffi.new('size_t*')
+                    k = ffi.new("const char**")
+                    v = ffi.new("const char**")
+                    level = ffi.new("size_t*")
 
                     meta = dict()
                     while lib.fdb_splitkey_next_metadata(key, k, v, level) == 0:
-                        meta[ffi.string(k[0]).decode('utf-8')] = ffi.string(v[0]).decode('utf-8')
-                    el['keys'] = meta
+                        meta[ffi.string(k[0]).decode("utf-8")] = ffi.string(v[0]).decode("utf-8")
+                    el["keys"] = meta
 
                 yield el
 
 
 class DataRetriever:
     """!
-        Data retriever returned by the retrieve() function of the FDB.
-        Implements file like functionality to retrieve data from a FDB request.
+    Data retriever returned by the retrieve() function of the FDB.
+    Implements file like functionality to retrieve data from a FDB request.
     """
+
     __dataread = None
     __opened = False
 
     def __init__(self, fdb, request):
-        dataread = ffi.new('fdb_datareader_t **')
+        dataread = ffi.new("fdb_datareader_t **")
         lib.fdb_new_datareader(dataread)
         self.__dataread = ffi.gc(dataread[0], lib.fdb_delete_datareader)
 
         lib.fdb_retrieve(fdb.ctype, Request(request).ctype, self.__dataread)
 
-    mode = 'rb'
+    mode = "rb"
 
     def open(self):
         """!
-            Open the data retriever
+        Open the data retriever
         """
         if not self.__opened:
             self.__opened = True
@@ -244,7 +254,7 @@ class DataRetriever:
 
     def close(self):
         """!
-            Close the data retriever
+        Close the data retriever
         """
         if self.__opened:
             self.__opened = False
@@ -252,9 +262,9 @@ class DataRetriever:
 
     def skip(self, count):
         """!
-            Skip a specified amount of bytes in the data retriever.
+        Skip a specified amount of bytes in the data retriever.
 
-            @Info Opens the data retriever if needed
+        @Info Opens the data retriever if needed
         """
         self.open()
         if isinstance(count, int):
@@ -262,9 +272,9 @@ class DataRetriever:
 
     def seek(self, where):
         """!
-            Sets offset of bytes in the data retriever.
+        Sets offset of bytes in the data retriever.
 
-            @Info Opens the data retriever if needed
+        @Info Opens the data retriever if needed
         """
         self.open()
         if isinstance(where, int):
@@ -272,9 +282,9 @@ class DataRetriever:
 
     def tell(self):
         """!
-            Tell the data of the data retriever at the current position.
+        Tell the data of the data retriever at the current position.
 
-            @info opens the data retriever if needed
+        @info opens the data retriever if needed
         """
         self.open()
         where = ffi.new("long*")
@@ -283,16 +293,16 @@ class DataRetriever:
 
     def read(self, count):
         """!
-            Read count bytes of data of the data retriever at the current position.
+        Read count bytes of data of the data retriever at the current position.
 
-            @info opens the data retriever if needed
+        @info opens the data retriever if needed
         """
         self.open()
         if isinstance(count, int):
             buf = bytearray(count)
-            read = ffi.new('long*')
+            read = ffi.new("long*")
             lib.fdb_datareader_read(self.__dataread, ffi.from_buffer(buf), count, read)
-            return buf[0:read[0]]
+            return buf[0 : read[0]]
 
     def __enter__(self):
         return self
@@ -305,10 +315,11 @@ class FDB:
     """!
     This is the main container class for accessing FDB
     """
+
     __fdb = None
 
     def __init__(self):
-        fdb = ffi.new('fdb_handle_t**')
+        fdb = ffi.new("fdb_handle_t**")
         lib.fdb_new_handle(fdb)
 
         # Set free function
@@ -316,10 +327,10 @@ class FDB:
 
     def archive(self, data, request=None):
         """!
-            @brief Archives binary data to a FDB Instance.
-            
-            @param data Binary GRIB file
-            @param request Request object 
+        @brief Archives binary data to a FDB Instance.
+
+        @param data Binary GRIB file
+        @param request Request object
         """
         if request is None:
             lib.fdb_archive_multiple(self.ctype, ffi.NULL, ffi.from_buffer(data), len(data))
@@ -328,28 +339,28 @@ class FDB:
 
     def flush(self):
         """!
-            @brief Flushes all buffers and closes all data handles into a consistent DB state
-            @note Always safe to call
+        @brief Flushes all buffers and closes all data handles into a consistent DB state
+        @note Always safe to call
         """
         lib.fdb_flush(self.ctype)
 
     def list(self, request=None, duplicates=False, keys=False):
         """!
-            @brief List data present at the archive and which can be retrieved
-            
-            @param request FDBToolRequest stating which data should be queried
-            @param deduplicate Bool, whether the returned iterator should ignore duplicates
-            @param keys TODO
-            @return ListIterator for iterating over the set of found items
+        @brief List data present at the archive and which can be retrieved
+
+        @param request FDBToolRequest stating which data should be queried
+        @param deduplicate Bool, whether the returned iterator should ignore duplicates
+        @param keys TODO
+        @return ListIterator for iterating over the set of found items
         """
         return ListIterator(self, request, duplicates, keys)
 
     def retrieve(self, request):
         """!
-            @brief Retrieve data which is specified by a MARS request
-            
-            @param request Request which describes the data which should be retrieved
-            @return DataRetriever for reading the requested data from
+        @brief Retrieve data which is specified by a MARS request
+
+        @param request Request which describes the data which should be retrieved
+        @return DataRetriever for reading the requested data from
         """
         return DataRetriever(self, request)
 
@@ -360,13 +371,14 @@ class FDB:
 
 fdb = None
 
+
 def archive(data):
     """!
-        @brief Archives binary data to a FDB instance.
-        @note Convenience method which sets up an FDB instance, in case none was setup before
-        
-        @param data Binary GRIB file
-        @param request Request object 
+    @brief Archives binary data to a FDB instance.
+    @note Convenience method which sets up an FDB instance, in case none was setup before
+
+    @param data Binary GRIB file
+    @param request Request object
     """
     global fdb
     if not fdb:
@@ -376,13 +388,13 @@ def archive(data):
 
 def list(request, duplicates=False, keys=False):
     """!
-        @brief List data present at the archive and which can be retrieved
-        @note Convenience method which sets up an FDB instance, in case none was setup before
-        
-        @param request FDBToolRequest stating which data should be queried
-        @param deduplicate Bool, whether the returned iterator should ignore duplicates
-        @param keys Keys for the list iterator to be splitted on
-        @return ListIterator for iterating over the set of found items
+    @brief List data present at the archive and which can be retrieved
+    @note Convenience method which sets up an FDB instance, in case none was setup before
+
+    @param request FDBToolRequest stating which data should be queried
+    @param deduplicate Bool, whether the returned iterator should ignore duplicates
+    @param keys Keys for the list iterator to be splitted on
+    @return ListIterator for iterating over the set of found items
     """
     global fdb
     if not fdb:
@@ -392,11 +404,11 @@ def list(request, duplicates=False, keys=False):
 
 def retrieve(request):
     """!
-        @brief Retrieve data which is specified by a MARS request
-        @note Convenience method which sets up an FDB instance, in case none was setup before
-        
-        @param request Request which describes the data which should be retrieved
-        @return DataRetriever for reading the requested data from
+    @brief Retrieve data which is specified by a MARS request
+    @note Convenience method which sets up an FDB instance, in case none was setup before
+
+    @param request Request which describes the data which should be retrieved
+    @return DataRetriever for reading the requested data from
     """
     global fdb
     if not fdb:

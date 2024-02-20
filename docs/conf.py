@@ -6,12 +6,10 @@
 
 # -- Imports -----------------------------------------------------------------
 
-import sys
-import os
 import datetime
+import os
 import re
-import subprocess
-
+import sys
 
 # -- Path manipulation--------------------------------------------------------
 
@@ -21,7 +19,7 @@ sys.path.append(os.path.abspath("../tests"))
 # -- Run Doxygen -------------------------------------------------------------
 
 # Generate Doxygen documentation in the XML format.
-#assert subprocess.check_call("doxygen Doxyfile.in", stdout=subprocess.DEVNULL, shell=True) == 0
+# assert subprocess.check_call("doxygen Doxyfile.in", stdout=subprocess.DEVNULL, shell=True) == 0
 
 
 # -- Project information -----------------------------------------------------
@@ -56,13 +54,7 @@ version = parse_version(release)  # feature version
 # Add any Sphinx extension module names here, as strings. They can be
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
-extensions = [
-    "sphinx_rtd_theme",
-    "sphinx_copybutton",
-    "sphinx_tabs.tabs",
-    "sphinxfortran.fortran_domain",
-    "breathe"
-]
+extensions = ["sphinx_rtd_theme", "sphinx_copybutton", "sphinx_tabs.tabs", "sphinxfortran.fortran_domain", "breathe"]
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ["_templates"]
