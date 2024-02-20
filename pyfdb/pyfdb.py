@@ -18,6 +18,7 @@ import cffi
 import os
 from pkg_resources import parse_version
 import findlibs
+import io
 
 __version__ = '0.0.1'
 
@@ -202,7 +203,7 @@ class ListIterator:
                 yield el
 
 
-class DataRetriever:
+class DataRetriever(io.RawIOBase):
     __dataread = None
     __opened = False
 
