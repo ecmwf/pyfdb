@@ -245,7 +245,9 @@ class DataRetriever(io.RawIOBase):
         if isinstance(count, int):
             lib.fdb_datareader_skip(self.__dataread, count)
 
-    def seek(self, where):
+    def seek(self, where, whence=io.SEEK_SET):
+        if whence != io.SEEK_SET:
+            raise NotImplementedError(f"SEEK_CUR and SEEK_END are not currently supported on {self.__class__.__name__} objects")
         self.open()
         if isinstance(where, int):
             lib.fdb_datareader_seek(self.__dataread, where)
