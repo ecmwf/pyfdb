@@ -6,5 +6,7 @@
 pyfdb.egg-info/
 dist/
 **/build
+**/_build
 *.grib
 !data/*.grib
+**/venv
