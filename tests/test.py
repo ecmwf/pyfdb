@@ -36,7 +36,7 @@ fdb.archive(open(filename, "rb").read(), key)
 
 key["levelist"] = "400"
 filename = "x138-400.grib"
-pyfdb.archive(open(filename, "rb").read())
+fdb.archive(open(filename, "rb").read())
 
 key["expver"] = "xxxy"
 filename = "y138-400.grib"

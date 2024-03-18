@@ -315,3 +315,10 @@ def retrieve(request):
     if not fdb:
         fdb = FDB()
     return DataRetriever(fdb, request)
+
+
+def flush():
+    global fdb
+    if not fdb:
+        fdb = FDB()
+    fdb.flush()
