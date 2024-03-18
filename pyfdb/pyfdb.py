@@ -260,10 +260,17 @@ class FDB:
     """This is the main container class for accessing FDB"""
     __fdb = None
 
-    def __init__(self):
+    def __init__(self, config_path=None):
         fdb = ffi.new('fdb_handle_t**')
-        lib.fdb_new_handle(fdb)
-
+        if config_path is None:
+            lib.fdb_new_handle(fdb)
+        else:
+            if type(config_path) is str:
+                # FFI can handle python string to char* directly
+                lib.fdb_new_handle_from_config_path(fdb, config_path)
+            else:
+                raise ValueError("config_path must be a string")
+        
         # Set free function
         self.__fdb = ffi.gc(fdb[0], lib.fdb_delete_handle)
 
