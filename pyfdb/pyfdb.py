@@ -17,9 +17,9 @@ import cffi
 import findlibs
 from pkg_resources import parse_version
 
-__version__ = "0.0.1"
+__version__ = "0.0.3"
 
-__fdb_version__ = "5.6.0"
+__fdb_version__ = "5.11.30"
 
 ffi = cffi.FFI()
 
