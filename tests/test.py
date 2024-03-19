@@ -32,7 +32,7 @@ key = {
 }
 
 filename = "x138-300.grib"
-fdb.archive(open(filename, "rb").read(), key)
+pyfdb.archive(open(filename, "rb").read())
 
 key["levelist"] = "400"
 filename = "x138-400.grib"
@@ -40,8 +40,8 @@ pyfdb.archive(open(filename, "rb").read())
 
 key["expver"] = "xxxy"
 filename = "y138-400.grib"
-fdb.archive(open(filename, "rb").read())
-fdb.flush()
+pyfdb.archive(open(filename, "rb").read())
+pyfdb.flush()
 
 # List
 request = {
