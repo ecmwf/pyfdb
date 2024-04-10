@@ -21,6 +21,7 @@ struct fdb_request_t;
 typedef struct fdb_request_t fdb_request_t;
 int fdb_new_request(fdb_request_t** req);
 int fdb_request_add(fdb_request_t* req, const char* param, const char* values[], int numValues);
+int fdb_expand_request(fdb_request_t* req);
 int fdb_delete_request(fdb_request_t* req);
 
 struct fdb_split_key_t;

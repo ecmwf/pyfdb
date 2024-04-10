@@ -45,7 +45,7 @@ request = {
     'class': 'rd',
     'expver': 'xxxx',
     'stream': 'oper',
-    'date': '20191110',
+    'date': ['20191110','to','20191111'],
     'time': '0000',
     'domain': 'g',
     'type': 'an',
@@ -91,6 +91,8 @@ except StopIteration:
 
 # as an alternative, create a FDB instance and start queries from there
 request['levelist'] = ['400', '500', '700', '850', '1000']
+request['date'] = '20191110/to/20191111'
+
 print('')
 print('fdb object, request as dictionary:', request)
 for el in fdb.list(request, True, True):
@@ -109,7 +111,7 @@ request = {
     'levtype': 'pl',
     'step': '0',
     'expver': 'xxxx',
-    'date': '20191110',
+    'date': '20191110/to/20191111',
     'class': 'rd',
     'levelist': '300',
     'param': '138',
