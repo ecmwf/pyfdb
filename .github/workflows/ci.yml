@@ -75,3 +75,19 @@ jobs:
           repository: private-downstream-ci
           event_type: downstream-ci-hpc
           payload: '{"pyfdb": "ecmwf/pyfdb@${{ github.event.pull_request.head.sha || github.sha }}"}'
+
+  notify:
+    name: notify
+    runs-on: ubuntu-latest
+    needs:
+    - ci
+    - qa
+    - deploy
+    steps:
+    - name: Notify Teams
+      if: failure() && (github.ref == 'refs/heads/master' || github.ref == 'refs/heads/develop')
+      uses: ecmwf-actions/notify-teams@v1
+      with:
+        incoming_webhook: ${{ secrets.MS_TEAMS_INCOMING_WEBHOOK }}
+        notify_on: |
+          failure
