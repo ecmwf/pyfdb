@@ -16,6 +16,12 @@ setup(
     author_email="software.support@ecmwf.int",
     packages=find_packages(exclude=("docs", "tests")),
     include_package_data=True,
+    tests_require=[
+        "pytest",
+        "pytest-cov",
+        "pytest-flakes",
+        ],
+    test_suite="tests",
     install_requires=["cffi", "findlibs", "pyeccodes"],
     zip_safe=False,
 )
