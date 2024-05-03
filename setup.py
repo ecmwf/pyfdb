@@ -20,7 +20,7 @@ setup(
         "pytest",
         "pytest-cov",
         "pytest-flakes",
-        ],
+    ],
     test_suite="tests",
     install_requires=["cffi", "findlibs", "pyeccodes"],
     zip_safe=False,
