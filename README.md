@@ -182,3 +182,12 @@ grib = next(reader)
 grib.dump()
 # [...redacted...]
 ```
+
+
+## 3. Development
+Pre-commit hooks are supplied in `.pre-commit-config.yaml` to lint and format the code before committing. To activate this:
+```bash
+pip install pre-commit
+pre-commit install # Install the hooks so that they run before `git commit`
+```
+At the moment this runs isort, black and flake8, if any of these encounter errors they can't autofix then the commit will be blocked.
