@@ -20,7 +20,7 @@ from pkg_resources import parse_version
 
 __version__ = "0.0.4"
 
-__fdb_version__ = "5.6.0"
+__fdb_version__ = "5.11.0"
 
 ffi = cffi.FFI()
 
@@ -156,6 +156,9 @@ class Request:
                 len(values),
             )
 
+    def expand(self):
+        lib.fdb_expand_request(self.__request)
+
     @property
     def ctype(self):
         return self.__request
@@ -165,10 +168,13 @@ class ListIterator:
     __iterator = None
     __key = False
 
-    def __init__(self, fdb, request, duplicates, key=False):
+    def __init__(self, fdb, request, duplicates, key=False, expand=True):
         iterator = ffi.new("fdb_listiterator_t**")
         if request:
-            lib.fdb_list(fdb.ctype, Request(request).ctype, iterator, duplicates)
+            req = Request(request)
+            if expand:
+                req.expand()
+            lib.fdb_list(fdb.ctype, req.ctype, iterator, duplicates)
         else:
             lib.fdb_list(fdb.ctype, ffi.NULL, iterator, duplicates)
 
@@ -212,12 +218,14 @@ class DataRetriever:
     __dataread = None
     __opened = False
 
-    def __init__(self, fdb, request):
+    def __init__(self, fdb, request, expand=True):
         dataread = ffi.new("fdb_datareader_t **")
         lib.fdb_new_datareader(dataread)
         self.__dataread = ffi.gc(dataread[0], lib.fdb_delete_datareader)
-
-        lib.fdb_retrieve(fdb.ctype, Request(request).ctype, self.__dataread)
+        req = Request(request)
+        if expand:
+            req.expand()
+        lib.fdb_retrieve(fdb.ctype, req.ctype, self.__dataread)
 
     mode = "rb"
 
