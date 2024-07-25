@@ -41,7 +41,6 @@ class PatchedLib:
     __type_names = {}
 
     def __init__(self):
-
         libName = findlibs.find("fdb5")
 
         if libName is None:
@@ -59,7 +58,9 @@ class PatchedLib:
         for f in dir(self.__lib):
             try:
                 attr = getattr(self.__lib, f)
-                setattr(self, f, self.__check_error(attr, f) if callable(attr) else attr)
+                setattr(
+                    self, f, self.__check_error(attr, f) if callable(attr) else attr
+                )
             except Exception as e:
                 print(e)
                 print("Error retrieving attribute", f, "from library")
@@ -75,7 +76,11 @@ class PatchedLib:
         versionstr = ffi.string(tmp_str[0]).decode("utf-8")
 
         if parse_version(versionstr) < parse_version(__fdb_version__):
-            raise RuntimeError("Version of libfdb found is too old. {} < {}".format(versionstr, __fdb_version__))
+            raise RuntimeError(
+                "Version of libfdb found is too old. {} < {}".format(
+                    versionstr, __fdb_version__
+                )
+            )
 
     def __read_header(self):
         with open(os.path.join(os.path.dirname(__file__), "processed_fdb.h"), "r") as f:
@@ -89,7 +94,10 @@ class PatchedLib:
 
         def wrapped_fn(*args, **kwargs):
             retval = fn(*args, **kwargs)
-            if retval != self.__lib.FDB_SUCCESS and retval != self.__lib.FDB_ITERATION_COMPLETE:
+            if (
+                retval != self.__lib.FDB_SUCCESS
+                and retval != self.__lib.FDB_ITERATION_COMPLETE
+            ):
                 error_str = "Error in function {}: {}".format(
                     name, ffi.string(self.__lib.fdb_error_string(retval)).decode()
                 )
@@ -118,7 +126,9 @@ class Key:
 
     def set(self, param, value):
         lib.fdb_key_add(
-            self.__key, ffi.new("const char[]", param.encode("ascii")), ffi.new("const char[]", value.encode("ascii"))
+            self.__key,
+            ffi.new("const char[]", param.encode("ascii")),
+            ffi.new("const char[]", value.encode("ascii")),
         )
 
     @property
@@ -292,9 +302,13 @@ class FDB:
 
     def archive(self, data, request=None):
         if request is None:
-            lib.fdb_archive_multiple(self.ctype, ffi.NULL, ffi.from_buffer(data), len(data))
+            lib.fdb_archive_multiple(
+                self.ctype, ffi.NULL, ffi.from_buffer(data), len(data)
+            )
         else:
-            lib.fdb_archive_multiple(self.ctype, Request(request).ctype, ffi.from_buffer(data), len(data))
+            lib.fdb_archive_multiple(
+                self.ctype, Request(request).ctype, ffi.from_buffer(data), len(data)
+            )
 
     def flush(self):
         lib.fdb_flush(self.ctype)
