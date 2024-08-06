@@ -8,45 +8,51 @@
 # granted to it by virtue of its status as an intergovernmental organisation nor
 # does it submit to any jurisdiction.
 import os
-import shutil
 
 from pyeccodes import Reader
 
 import pyfdb
 
-fdb = pyfdb.FDB()
 
-# Archive
-key = {
-    "domain": "g",
-    "stream": "oper",
-    "levtype": "pl",
-    "levelist": "300",
-    "date": "20191110",
-    "time": "0000",
-    "step": "0",
-    "param": "138",
-    "class": "rd",
-    "type": "an",
-    "expver": "xxxx",
-}
+def test_archive():
+    """
+    Test the archive function
+    """
 
+    key = {
+        "domain": "g",
+        "stream": "oper",
+        "levtype": "pl",
+        "levelist": "300",
+        "date": "20191110",
+        "time": "0000",
+        "step": "0",
+        "param": "138",
+        "class": "rd",
+        "type": "an",
+        "expver": "xxxx",
+    }
 
-def test_archival_read():
+    def archive_grib(grib: str):
+        filename = os.path.join(os.path.dirname(__file__), grib)
+        pyfdb.archive(open(filename, "rb").read())
 
-    filename = os.path.join(os.path.dirname(__file__), "x138-300.grib")
-    pyfdb.archive(open(filename, "rb").read())
+    archive_grib("x138-300.grib")
 
     key["levelist"] = "400"
-    filename = os.path.join(os.path.dirname(__file__), "x138-400.grib")
-    pyfdb.archive(open(filename, "rb").read())
+    archive_grib("x138-400.grib")
 
     key["expver"] = "xxxy"
-    filename = os.path.join(os.path.dirname(__file__), "y138-400.grib")
-    pyfdb.archive(open(filename, "rb").read())
+    archive_grib("y138-400.grib")
+
     pyfdb.flush()
 
-    # List
+
+def test_list():
+    """
+    Test the list function
+    """
+
     request = {
         "class": "rd",
         "expver": "xxxx",
@@ -60,6 +66,7 @@ def test_archival_read():
         "levelist": [300, "500"],
         "param": ["138", 155, "t"],
     }
+
     print("direct function, request as dictionary:", request)
     for el in pyfdb.list(request, True):
         assert el["path"]
@@ -98,6 +105,8 @@ def test_archival_read():
     request["levelist"] = ["400", "500", "700", "850", "1000"]
     print("")
     print("fdb object, request as dictionary:", request)
+
+    fdb = pyfdb.FDB()
     for el in fdb.list(request, True, True):
         assert el["path"]
         assert el["path"].find("rd:xxxx:oper:20191110:0000:g/an:pl.") != -1
@@ -106,7 +115,139 @@ def test_archival_read():
         assert keys["class"] == "rd"
         assert keys["levelist"] == "400"
 
-    # Retrieve
+
+def test_list_depth():
+    """
+    Test fdb list depth option
+    """
+
+    request = {
+        "class": "rd",
+        "expver": ["xxxx", "xxxy"],
+        "stream": "oper",
+        "date": "20191110",
+        "time": "0000",
+        "domain": "g",
+        "type": "an",
+        "levtype": "pl",
+        "step": 0,
+        "levelist": ["300", "400"],
+        "param": "138",
+    }
+
+    print("test list: request={0}".format(request))
+
+    print("list: depth=1")
+
+    list = [
+        {"class": "rd", "date": "20191110", "domain": "g", "expver": "xxxx", "stream": "oper", "time": "0000"},
+        {"class": "rd", "date": "20191110", "domain": "g", "expver": "xxxy", "stream": "oper", "time": "0000"},
+    ]
+
+    for id, el in enumerate(pyfdb.list(request, True, True, False, 1)):
+        assert "keys" in el
+        assert el["keys"] == list[id]
+        # print("%(keys)s" % el)
+
+    print("list: depth=2")
+
+    list = [
+        {
+            "class": "rd",
+            "date": "20191110",
+            "domain": "g",
+            "expver": "xxxx",
+            "stream": "oper",
+            "time": "0000",
+            "levtype": "pl",
+            "type": "an",
+        },
+        {
+            "class": "rd",
+            "date": "20191110",
+            "domain": "g",
+            "expver": "xxxy",
+            "stream": "oper",
+            "time": "0000",
+            "levtype": "pl",
+            "type": "an",
+        },
+    ]
+
+    for id, el in enumerate(pyfdb.list(request, True, True, False, 2)):
+        assert "keys" in el
+        assert el["keys"] == list[id]
+        # print("%(keys)s" % el)
+
+    print("list: depth=3")
+
+    list = [
+        {
+            "class": "rd",
+            "date": "20191110",
+            "domain": "g",
+            "expver": "xxxx",
+            "stream": "oper",
+            "time": "0000",
+            "levtype": "pl",
+            "type": "an",
+            "levelist": "300",
+            "param": "138",
+            "step": "0",
+        },
+        {
+            "class": "rd",
+            "date": "20191110",
+            "domain": "g",
+            "expver": "xxxx",
+            "stream": "oper",
+            "time": "0000",
+            "levtype": "pl",
+            "type": "an",
+            "levelist": "400",
+            "param": "138",
+            "step": "0",
+        },
+        {
+            "class": "rd",
+            "date": "20191110",
+            "domain": "g",
+            "expver": "xxxy",
+            "stream": "oper",
+            "time": "0000",
+            "levtype": "pl",
+            "type": "an",
+            "levelist": "400",
+            "param": "138",
+            "step": "0",
+        },
+    ]
+
+    for id, el in enumerate(pyfdb.list(request, True, True, False, 3)):
+        assert "keys" in el
+        assert el["keys"] == list[id]
+        # print("%(keys)s" % el)
+
+    # default depth is 3
+    for id, el in enumerate(pyfdb.list(request, True, True, False)):
+        assert "keys" in el
+        assert el["keys"] == list[id]
+        # print("%(keys)s" % el)
+
+
+def test_retrieve():
+    """
+    Test the retrieve function
+    """
+    import shutil
+
+    fdb = pyfdb.FDB()
+
+    def retrieve_grib(grib: str):
+        filename = os.path.join(os.path.dirname(__file__), grib)
+        with open(filename, "wb") as dest, fdb.retrieve(request) as src:
+            shutil.copyfileobj(src, dest)
+
     request = {
         "domain": "g",
         "stream": "oper",
@@ -121,23 +262,13 @@ def test_archival_read():
         "type": "an",
     }
 
-    filename = os.path.join(os.path.dirname(__file__), "x138-300bis.grib")
-    print("")
-    print("save to file ", filename)
-    with open(filename, "wb") as o, fdb.retrieve(request) as i:
-        shutil.copyfileobj(i, o)
+    retrieve_grib("x138-300bis.grib")
 
     request["levelist"] = "400"
-    filename = os.path.join(os.path.dirname(__file__), "x138-400bis.grib")
-    print("save to file ", filename)
-    with open(filename, "wb") as o, fdb.retrieve(request) as i:
-        shutil.copyfileobj(i, o)
+    retrieve_grib("x138-400bis.grib")
 
     request["expver"] = "xxxy"
-    filename = os.path.join(os.path.dirname(__file__), "y138-400bis.grib")
-    print("save to file ", filename)
-    with open(filename, "wb") as o, pyfdb.retrieve(request) as i:
-        shutil.copyfileobj(i, o)
+    retrieve_grib("y138-400bis.grib")
 
     # request = {
     #     'class': 'od',
@@ -186,5 +317,5 @@ def test_archival_read():
 
     print("")
     print("save to file ", filename)
-    with open(filename, "wb") as o, fdb.retrieve(request) as i:
-        shutil.copyfileobj(i, o)
+    with open(filename, "wb") as dest, fdb.retrieve(request) as src:
+        shutil.copyfileobj(src, dest)
