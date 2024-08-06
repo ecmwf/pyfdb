@@ -27,7 +27,8 @@ int fdb_delete_request(fdb_request_t* req);
 struct fdb_split_key_t;
 typedef struct fdb_split_key_t fdb_split_key_t;
 int fdb_new_splitkey(fdb_split_key_t** key);
-int fdb_splitkey_next_metadata(fdb_split_key_t* it, const char** key, const char** value, size_t* level);
+int fdb_splitkey_next(fdb_split_key_t* it);
+int fdb_splitkey_metadata(fdb_split_key_t* it, const char** key, const char** value, size_t* level);
 int fdb_delete_splitkey(fdb_split_key_t* key);
 
 struct fdb_listiterator_t;

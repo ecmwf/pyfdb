@@ -207,8 +207,9 @@ class ListIterator:
                     level = ffi.new("size_t*")
 
                     meta = dict()
-                    while lib.fdb_splitkey_next_metadata(key, k, v, level) == 0:
+                    while lib.fdb_splitkey_metadata(key, k, v, level) == 0:
                         meta[ffi.string(k[0]).decode("utf-8")] = ffi.string(v[0]).decode("utf-8")
+                        lib.fdb_splitkey_next(key)
                     el["keys"] = meta
 
                 yield el
