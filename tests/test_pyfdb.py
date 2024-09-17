@@ -61,6 +61,9 @@ def test_archival_read():
         "param": ["138", 155, "t"],
     }
     print("direct function, request as dictionary:", request)
+    elements = [x for x in pyfdb.list(request, True)]
+    assert len(elements) != 0
+
     for el in pyfdb.list(request, True):
         assert el["path"]
         assert el["path"].find("rd:xxxx:oper:20191110:0000:g/an:pl.") != -1
