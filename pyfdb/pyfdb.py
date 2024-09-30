@@ -17,7 +17,7 @@ import os
 
 import cffi
 import findlibs
-from pkg_resources import parse_version
+from packaging import version
 
 __version__ = "0.0.4"
 
@@ -73,9 +73,9 @@ class PatchedLib:
 
         tmp_str = ffi.new("char**")
         self.fdb_version(tmp_str)
-        versionstr = ffi.string(tmp_str[0]).decode("utf-8")
+        self.__lib_version = ffi.string(tmp_str[0]).decode("utf-8")
 
-        if parse_version(versionstr) < parse_version(__fdb_version__):
+        if version.parse(self.__lib_version) < version.parse(__fdb_version__):
             raise RuntimeError(
                 "Version of libfdb found is too old. {} < {}".format(
                     versionstr, __fdb_version__
