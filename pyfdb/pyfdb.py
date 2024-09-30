@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import io
+import json
 import os
 
 import cffi
@@ -293,9 +294,34 @@ class FDB:
 
     __fdb = None
 
-    def __init__(self):
+    def __init__(self, config=None, user_config=None):
         fdb = ffi.new("fdb_handle_t**")
-        lib.fdb_new_handle(fdb)
+
+        if config is not None or user_config is not None:
+            if not hasattr(lib, "fdb_new_handle_from_yaml"):
+                raise RuntimeError(
+                    f"The current FDB5 library version ({lib.version} from {self.__lib_path}) does not support passing config directly,"
+                    " use the FDB5_CONFIG or FDB5_CONFIG_FILE environment variables instead."
+                )
+
+            def prepare_config(c):
+                if c is None: 
+                    return ""
+                if not isinstance(c, str):
+                    return json.dumps(c)
+                return c
+
+            config = prepare_config(config)
+            user_config = prepare_config(user_config)
+
+
+            lib.fdb_new_handle_from_yaml(
+                fdb, 
+                ffi.new("const char[]", config.encode("utf-8")), 
+                ffi.new("const char[]", user_config.encode("utf-8"))
+            )
+        else:
+            lib.fdb_new_handle(fdb)
 
         # Set free function
         self.__fdb = ffi.gc(fdb[0], lib.fdb_delete_handle)

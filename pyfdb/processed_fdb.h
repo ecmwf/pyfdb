@@ -51,6 +51,7 @@ int fdb_delete_datareader(fdb_datareader_t* dr);
 struct fdb_handle_t;
 typedef struct fdb_handle_t fdb_handle_t;
 int fdb_new_handle(fdb_handle_t** fdb);
+int fdb_new_handle_from_yaml(fdb_handle_t** fdb, const char* config, const char* user_config);
 int fdb_archive(fdb_handle_t* fdb, fdb_key_t* key, const char* data, size_t length);
 int fdb_archive_multiple(fdb_handle_t* fdb, fdb_request_t* req, const char* data, size_t length);
 int fdb_list(fdb_handle_t* fdb, const fdb_request_t* req, fdb_listiterator_t** it, bool duplicates);
