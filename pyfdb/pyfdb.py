@@ -41,13 +41,13 @@ class PatchedLib:
     __type_names = {}
 
     def __init__(self):
-        libName = findlibs.find("fdb5")
+        self.__lib_path = findlibs.find("fdb5")
 
-        if libName is None:
+        if self.__lib_path is None:
             raise RuntimeError("FDB5 library not found")
 
         ffi.cdef(self.__read_header())
-        self.__lib = ffi.dlopen(libName)
+        self.__lib = ffi.dlopen(self.__lib_path)
 
         # Todo: Version check against __version__
 
