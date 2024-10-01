@@ -39,8 +39,6 @@ class PatchedLib:
     and patches the accessors with automatic python-C error handling.
     """
 
-    __type_names = {}
-
     def __init__(self):
         self.__lib_path = findlibs.find("fdb5")
 
