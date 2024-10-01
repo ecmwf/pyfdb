@@ -22,7 +22,7 @@ from packaging import version
 
 __version__ = "0.0.4"
 
-__fdb_version__ = "5.11.0"
+__fdb_version__ = "5.12.1"
 
 ffi = cffi.FFI()
 
