@@ -298,12 +298,6 @@ class FDB:
         fdb = ffi.new("fdb_handle_t**")
 
         if config is not None or user_config is not None:
-            if not hasattr(lib, "fdb_new_handle_from_yaml"):
-                raise RuntimeError(
-                    f"The current FDB5 library version ({lib.version} from {self.__lib_path}) does not support passing config directly,"
-                    " use the FDB5_CONFIG or FDB5_CONFIG_FILE environment variables instead."
-                )
-
             def prepare_config(c):
                 if c is None: 
                     return ""
