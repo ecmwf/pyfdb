@@ -55,9 +55,7 @@ class PatchedLib:
         for f in dir(self.__lib):
             try:
                 attr = getattr(self.__lib, f)
-                setattr(
-                    self, f, self.__check_error(attr, f) if callable(attr) else attr
-                )
+                setattr(self, f, self.__check_error(attr, f) if callable(attr) else attr)
             except Exception as e:
                 print(e)
                 print("Error retrieving attribute", f, "from library")
@@ -74,7 +72,8 @@ class PatchedLib:
 
         if version.parse(self.version) < version.parse(__fdb_version__):
             raise RuntimeError(
-                f"This version of pyfdb ({__version__}) requires fdb version {__fdb_version__} or greater. You have fdb version {self.version} loaded from {self.path}"
+                f"This version of pyfdb ({__version__}) requires fdb version {__fdb_version__} or greater."
+                f"You have fdb version {self.version} loaded from {self.path}"
             )
 
     def __read_header(self):
@@ -89,10 +88,7 @@ class PatchedLib:
 
         def wrapped_fn(*args, **kwargs):
             retval = fn(*args, **kwargs)
-            if (
-                retval != self.__lib.FDB_SUCCESS
-                and retval != self.__lib.FDB_ITERATION_COMPLETE
-            ):
+            if retval != self.__lib.FDB_SUCCESS and retval != self.__lib.FDB_ITERATION_COMPLETE:
                 error_str = "Error in function {}: {}".format(
                     name, ffi.string(self.__lib.fdb_error_string(retval)).decode()
                 )
@@ -100,7 +96,7 @@ class PatchedLib:
             return retval
 
         return wrapped_fn
-    
+
     def __repr__(self):
         return f"<pyfdb.pyfdb.PatchedLib FDB5 version {self.version} from {self.path}>"
 
@@ -295,8 +291,9 @@ class FDB:
         fdb = ffi.new("fdb_handle_t**")
 
         if config is not None or user_config is not None:
+
             def prepare_config(c):
-                if c is None: 
+                if c is None:
                     return ""
                 if not isinstance(c, str):
                     return json.dumps(c)
@@ -305,11 +302,10 @@ class FDB:
             config = prepare_config(config)
             user_config = prepare_config(user_config)
 
-
             lib.fdb_new_handle_from_yaml(
-                fdb, 
-                ffi.new("const char[]", config.encode("utf-8")), 
-                ffi.new("const char[]", user_config.encode("utf-8"))
+                fdb,
+                ffi.new("const char[]", config.encode("utf-8")),
+                ffi.new("const char[]", user_config.encode("utf-8")),
             )
         else:
             lib.fdb_new_handle(fdb)
@@ -319,13 +315,9 @@ class FDB:
 
     def archive(self, data, request=None):
         if request is None:
-            lib.fdb_archive_multiple(
-                self.ctype, ffi.NULL, ffi.from_buffer(data), len(data)
-            )
+            lib.fdb_archive_multiple(self.ctype, ffi.NULL, ffi.from_buffer(data), len(data))
         else:
-            lib.fdb_archive_multiple(
-                self.ctype, Request(request).ctype, ffi.from_buffer(data), len(data)
-            )
+            lib.fdb_archive_multiple(self.ctype, Request(request).ctype, ffi.from_buffer(data), len(data))
 
     def flush(self):
         lib.fdb_flush(self.ctype)

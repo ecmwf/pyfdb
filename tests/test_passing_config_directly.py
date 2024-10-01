@@ -27,11 +27,10 @@ def test_direct_config():
         fdb.archive(data)
         fdb.flush()
 
-        list_output = list(fdb.list(keys = True))
+        list_output = list(fdb.list(keys=True))
         assert len(list_output) == 1
 
         # Check that the archive path is in the tmp directory
         # On OSX tmp file paths look like /private/var/folders/.../T/tmp.../x138-300.grib
         # While the tmp directory looks like /var/folders/.../T/tmp.../ hence why this check is not "startwith"
-        assert tmp_root in list_output[0]['path']
-
+        assert tmp_root in list_output[0]["path"]
