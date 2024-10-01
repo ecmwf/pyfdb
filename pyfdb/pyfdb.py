@@ -40,15 +40,13 @@ class PatchedLib:
     """
 
     def __init__(self):
-        self.__lib_path = findlibs.find("fdb5")
+        self.path = findlibs.find("fdb5")
 
-        if self.__lib_path is None:
+        if self.path is None:
             raise RuntimeError("FDB5 library not found")
 
         ffi.cdef(self.__read_header())
-        self.__lib = ffi.dlopen(self.__lib_path)
-
-        # Todo: Version check against __version__
+        self.__lib = ffi.dlopen(self.path)
 
         # All of the executable members of the CFFI-loaded library are functions in the FDB
         # C API. These should be wrapped with the correct error handling. Otherwise forward
@@ -72,13 +70,11 @@ class PatchedLib:
 
         tmp_str = ffi.new("char**")
         self.fdb_version(tmp_str)
-        self.__lib_version = ffi.string(tmp_str[0]).decode("utf-8")
+        self.version = ffi.string(tmp_str[0]).decode("utf-8")
 
-        if version.parse(self.__lib_version) < version.parse(__fdb_version__):
+        if version.parse(self.version) < version.parse(__fdb_version__):
             raise RuntimeError(
-                "Version of libfdb found is too old. {} < {}".format(
-                    versionstr, __fdb_version__
-                )
+                f"This version of pyfdb ({__version__}) requires fdb version {__fdb_version__} or greater. You have fdb version {self.version} loaded from {self.path}"
             )
 
     def __read_header(self):
@@ -104,6 +100,9 @@ class PatchedLib:
             return retval
 
         return wrapped_fn
+    
+    def __repr__(self):
+        return f"<pyfdb.pyfdb.PatchedLib FDB5 version {self.version} from {self.path}>"
 
 
 # Bootstrap the library
