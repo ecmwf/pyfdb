@@ -14,6 +14,7 @@
 # limitations under the License.
 import io
 import os
+from typing import Iterator
 
 import cffi
 import findlibs
@@ -262,13 +263,14 @@ class DataRetriever(io.RawIOBase):
         lib.fdb_datareader_tell(self.__dataread, where)
         return where[0]
 
-    def read(self, count):
+    def read(self, count=-1) -> bytes:
         self.open()
         if isinstance(count, int):
             buf = bytearray(count)
             read = ffi.new("long*")
             lib.fdb_datareader_read(self.__dataread, ffi.from_buffer(buf), count, read)
             return buf[0 : read[0]]
+        return bytearray()
 
     def __enter__(self):
         return self
@@ -298,10 +300,10 @@ class FDB:
     def flush(self):
         lib.fdb_flush(self.ctype)
 
-    def list(self, request=None, duplicates=False, keys=False):
+    def list(self, request=None, duplicates=False, keys=False) -> Iterator[dict]:
         return ListIterator(self, request, duplicates, keys)
 
-    def retrieve(self, request):
+    def retrieve(self, request) -> DataRetriever:
         return DataRetriever(self, request)
 
     @property
@@ -319,7 +321,7 @@ def archive(data):
     fdb.archive(data)
 
 
-def list(request, duplicates=False, keys=False):
+def list(request, duplicates=False, keys=False) -> Iterator[dict]:
     global fdb
     if not fdb:
         fdb = FDB()
