@@ -15,6 +15,7 @@
 import io
 import json
 import os
+from functools import wraps
 
 import cffi
 import findlibs
@@ -283,7 +284,15 @@ class DataRetriever(io.RawIOBase):
 
 
 class FDB:
-    """This is the main container class for accessing FDB"""
+    """This is the main container class for accessing FDB
+
+    Usage:
+        fdb = pyfdb.FDB()
+        # call fdb.archive, fdb.list, fdb.retrieve, fdb.flush as needed.
+
+    See the module level pyfdb.list, pyfdb.retrieve, and pyfdb.archive
+    docstrings for more information on these functions.
+    """
 
     __fdb = None
 
@@ -313,19 +322,45 @@ class FDB:
         # Set free function
         self.__fdb = ffi.gc(fdb[0], lib.fdb_delete_handle)
 
-    def archive(self, data, request=None):
+    def archive(self, data, request=None) -> None:
+        """Archive data into the FDB5 database
+
+        Args:
+            data (bytes): bytes data to be archived
+            request (dict | None): dictionary representing the request to be associated with the data,
+                if not provided the key will be constructed from the data.
+        """
         if request is None:
             lib.fdb_archive_multiple(self.ctype, ffi.NULL, ffi.from_buffer(data), len(data))
         else:
             lib.fdb_archive_multiple(self.ctype, Request(request).ctype, ffi.from_buffer(data), len(data))
 
-    def flush(self):
+    def flush(self) -> None:
+        """Flush any archived data to disk"""
         lib.fdb_flush(self.ctype)
 
-    def list(self, request=None, duplicates=False, keys=False):
+    def list(self, request=None, duplicates=False, keys=False) -> ListIterator:
+        """List entries in the FDB5 database
+
+        Args:
+            request (dict): dictionary representing the request.
+            duplicates (bool) = false : whether to include duplicate entries.
+            keys (bool) = false : whether to include the keys for each entry in the output.
+
+        Returns:
+            ListIterator: an iterator over the entries.
+        """
         return ListIterator(self, request, duplicates, keys)
 
     def retrieve(self, request) -> DataRetriever:
+        """Retrieve data as a stream.
+
+        Args:
+            request (dict): dictionary representing the request.
+
+        Returns:
+            DataRetriever: An object implementing a file-like interface to the data stream.
+        """
         return DataRetriever(self, request)
 
     @property
@@ -336,27 +371,32 @@ class FDB:
 fdb = None
 
 
-def archive(data):
+# Use functools.wraps to copy over the docstring from FDB.xxx to the module level functions
+@wraps(FDB.archive)
+def archive(data) -> None:
     global fdb
     if not fdb:
         fdb = FDB()
     fdb.archive(data)
 
 
-def list(request, duplicates=False, keys=False):
+@wraps(FDB.list)
+def list(request, duplicates=False, keys=False) -> ListIterator:
     global fdb
     if not fdb:
         fdb = FDB()
     return ListIterator(fdb, request, duplicates, keys)
 
 
-def retrieve(request):
+@wraps(FDB.retrieve)
+def retrieve(request) -> DataRetriever:
     global fdb
     if not fdb:
         fdb = FDB()
     return DataRetriever(fdb, request)
 
 
+@wraps(FDB.flush)
 def flush():
     global fdb
     if not fdb:
