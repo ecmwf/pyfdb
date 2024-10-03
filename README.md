@@ -37,6 +37,27 @@ import shutil
 fdb = pyfdb.FDB()
 ```
 
+A config and userconfig can also be passed directly to the initialization function:
+```python
+config = dict(
+    type="local",
+    engine="toc",
+    schema="/path/to/fdb_schema",
+    spaces=[
+        dict(
+            handler="Default",
+            roots=[
+                {"path": "/path/to/root"},
+            ],
+        )
+    ],
+)
+
+fdb = pyfdb.FDB(config = config, userconfig = {})
+# Now use fdb.list, fdb.archive etc
+```
+The module level functions `pyfdb.list, pyfdb.archive` etc use the default `pyfdb.FDB()` initialization with the default config search path.
+
 ### Archive
 ```python
 key = {
@@ -100,7 +121,7 @@ for el in pyfdb.list(request, True, True):
 # {'class': 'rd', 'date': '20191110', 'domain': 'g', 'expver': 'xxxx', 'stream': 'oper', 'time': '0000', 'levtype': 'pl', 'type': 'an', 'levelist': '400', 'param': '138', 'step': '0'}
 ```
 
-#### fdb object, request as dicitonary
+#### Using the fdb object with the request as a dictionary
 As an alternative, use the created FDB instance and start queries from there
 ```python
 request['levelist'] = ['400', '500', '700', '850', '1000']
@@ -111,7 +132,7 @@ for el in fdb.list(request, True, True):
 
 ### Retrieve
 
-#### save to file
+#### To a file
 ```python
 import tempfile
 import os
@@ -147,7 +168,7 @@ with open(filename, 'wb') as o, pyfdb.retrieve(request) as i:
     shutil.copyfileobj(i, o)
 ```
 
-#### read into python object
+#### Read into memory
 ```python
 datareader = pyfdb.retrieve(request)
 
@@ -174,7 +195,7 @@ print(chunk)
 datareader.seek(0)
 ```
 
-#### decode GRIB
+#### Decode GRIB
 ```python
 from pyeccodes import Reader
 reader = Reader(datareader)
@@ -185,9 +206,36 @@ grib.dump()
 
 
 ## 3. Development
+
+### Pre-Commit Hooks
+
 Pre-commit hooks are supplied in `.pre-commit-config.yaml` to lint and format the code before committing. To activate this:
 ```bash
 pip install pre-commit
 pre-commit install # Install the hooks so that they run before `git commit`
 ```
 At the moment this runs isort, black and flake8, if any of these encounter errors they can't autofix then the commit will be blocked.
+
+### Run Unit Tests
+
+To run the unit tests, make sure that the `pytest` module is installed first:
+
+```sh
+python -m pytest
+```
+to test against a source build of fdb5 use:
+```
+FDB_HOME=/path/to/build/fdb5 python -m pytest
+```
+
+### Run Unit Tests across multiple python versions with Tox
+
+Tox is a useful tool to quickly run pytest across multiple python versions by managing a set of python environments for you. A tox.ini file is provided that targets python3.8 - 3.12. Note that this will also install older versions of libraries like numpy which helps to catch incompatibilities with older versions of those libraries too.
+
+To run tox, [install it](https://tox.wiki/), modify the `FDB5_HOME = ../build` line in `tox.ini` to point to a build of fdb5, this will be reused for all the tests. If your fdb5 is built as part of a bundle and `FDB5_HOME` points to the bundle build root, you may need to copy `build/fdb5/etc/fdb` to `build/etc/fdb` because by default fdb looks for a schema in `build/etc/fdb`.
+
+Then run
+```sh
+tox
+```
+The first run will take a while for it to install all the environments but after that it's very fast.
