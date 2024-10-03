@@ -14,7 +14,6 @@
 # limitations under the License.
 import io
 import os
-from typing import Iterator
 
 import cffi
 import findlibs
@@ -187,7 +186,7 @@ class ListIterator:
         self.off = ffi.new("size_t*")
         self.len = ffi.new("size_t*")
 
-    def __next__(self):
+    def __next__(self) -> dict:
         err = lib.fdb_listiterator_next(self.__iterator)
 
         if err != 0:
@@ -300,7 +299,7 @@ class FDB:
     def flush(self):
         lib.fdb_flush(self.ctype)
 
-    def list(self, request=None, duplicates=False, keys=False) -> Iterator[dict]:
+    def list(self, request=None, duplicates=False, keys=False):
         return ListIterator(self, request, duplicates, keys)
 
     def retrieve(self, request) -> DataRetriever:
@@ -321,7 +320,7 @@ def archive(data):
     fdb.archive(data)
 
 
-def list(request, duplicates=False, keys=False) -> Iterator[dict]:
+def list(request, duplicates=False, keys=False):
     global fdb
     if not fdb:
         fdb = FDB()
