@@ -70,7 +70,7 @@ def test_archival_read():
     request["param"] = "138"
     print("")
     print("direct function, updated dictionary:", request)
-    it = iter(pyfdb.list(request, True, True))
+    it = pyfdb.list(request, True, True)
 
     el = next(it)
     assert el["path"]

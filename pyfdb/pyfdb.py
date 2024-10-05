@@ -12,6 +12,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import io
 import os
 
 import cffi
@@ -181,40 +182,42 @@ class ListIterator:
         self.__iterator = ffi.gc(iterator[0], lib.fdb_delete_listiterator)
         self.__key = key
 
+        self.path = ffi.new("const char**")
+        self.off = ffi.new("size_t*")
+        self.len = ffi.new("size_t*")
+
+    def __next__(self) -> dict:
+        err = lib.fdb_listiterator_next(self.__iterator)
+
+        if err != 0:
+            raise StopIteration
+
+        lib.fdb_listiterator_attrs(self.__iterator, self.path, self.off, self.len)
+        el = dict(path=ffi.string(self.path[0]).decode("utf-8"), offset=self.off[0], length=self.len[0])
+
+        if self.__key:
+            splitkey = ffi.new("fdb_split_key_t**")
+            lib.fdb_new_splitkey(splitkey)
+            key = ffi.gc(splitkey[0], lib.fdb_delete_splitkey)
+
+            lib.fdb_listiterator_splitkey(self.__iterator, key)
+
+            k = ffi.new("const char**")
+            v = ffi.new("const char**")
+            level = ffi.new("size_t*")
+
+            meta = dict()
+            while lib.fdb_splitkey_next_metadata(key, k, v, level) == 0:
+                meta[ffi.string(k[0]).decode("utf-8")] = ffi.string(v[0]).decode("utf-8")
+            el["keys"] = meta
+
+        return el
+
     def __iter__(self):
-
-        path = ffi.new("const char**")
-        off = ffi.new("size_t*")
-        len = ffi.new("size_t*")
-
-        err = 0
-        while err == 0:
-            err = lib.fdb_listiterator_next(self.__iterator)
-            if err == 0:
-
-                lib.fdb_listiterator_attrs(self.__iterator, path, off, len)
-                el = dict(path=ffi.string(path[0]).decode("utf-8"), offset=off[0], length=len[0])
-
-                if self.__key:
-                    splitkey = ffi.new("fdb_split_key_t**")
-                    lib.fdb_new_splitkey(splitkey)
-                    key = ffi.gc(splitkey[0], lib.fdb_delete_splitkey)
-
-                    lib.fdb_listiterator_splitkey(self.__iterator, key)
-
-                    k = ffi.new("const char**")
-                    v = ffi.new("const char**")
-                    level = ffi.new("size_t*")
-
-                    meta = dict()
-                    while lib.fdb_splitkey_next_metadata(key, k, v, level) == 0:
-                        meta[ffi.string(k[0]).decode("utf-8")] = ffi.string(v[0]).decode("utf-8")
-                    el["keys"] = meta
-
-                yield el
+        return self
 
 
-class DataRetriever:
+class DataRetriever(io.RawIOBase):
     __dataread = None
     __opened = False
 
@@ -244,7 +247,11 @@ class DataRetriever:
         if isinstance(count, int):
             lib.fdb_datareader_skip(self.__dataread, count)
 
-    def seek(self, where):
+    def seek(self, where, whence=io.SEEK_SET):
+        if whence != io.SEEK_SET:
+            raise NotImplementedError(
+                f"SEEK_CUR and SEEK_END are not currently supported on {self.__class__.__name__} objects"
+            )
         self.open()
         if isinstance(where, int):
             lib.fdb_datareader_seek(self.__dataread, where)
@@ -255,13 +262,14 @@ class DataRetriever:
         lib.fdb_datareader_tell(self.__dataread, where)
         return where[0]
 
-    def read(self, count):
+    def read(self, count=-1) -> bytes:
         self.open()
         if isinstance(count, int):
             buf = bytearray(count)
             read = ffi.new("long*")
             lib.fdb_datareader_read(self.__dataread, ffi.from_buffer(buf), count, read)
             return buf[0 : read[0]]
+        return bytearray()
 
     def __enter__(self):
         return self
@@ -294,7 +302,7 @@ class FDB:
     def list(self, request=None, duplicates=False, keys=False):
         return ListIterator(self, request, duplicates, keys)
 
-    def retrieve(self, request):
+    def retrieve(self, request) -> DataRetriever:
         return DataRetriever(self, request)
 
     @property
