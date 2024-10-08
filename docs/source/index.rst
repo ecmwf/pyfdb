@@ -40,6 +40,30 @@ An example of archival, listing and retrieval via pyfdb is shown next. For the e
 
    fdb = pyfdb.FDB()
 
+
+A config and userconfig can also be passed directly to the initialization function.
+
+.. code:: python
+
+    config = dict(
+        type="local",
+        engine="toc",
+        schema="/path/to/fdb_schema",
+        spaces=[
+            dict(
+                handler="Default",
+                roots=[
+                    {"path": "/path/to/root"},
+                ],
+            )
+        ],
+    )
+
+    fdb = pyfdb.FDB(config = config, userconfig = {})
+    # Now use fdb.list, fd.archive, fdb.retrieve etc
+
+The module level functions `pyfdb.list, pyfdb.archive` etc use the default `pyfdb.FDB()` initialization with the default config search path so when passing config directly you must then use the FDB instance methods.
+
 **Archive**
 
 .. code:: python
