@@ -41,7 +41,8 @@ class PatchedLib:
     """
 
     def __init__(self):
-        self.path = findlibs.find("fdb5")
+        # Find the FDB library, respecting both environment variables FDB_HOME and FDB5_HOME
+        self.path = findlibs.find("fdb5", pkg_name="fdb") or findlibs.find("fdb5", pkg_name="fdb5")
 
         if self.path is None:
             raise RuntimeError("FDB5 library not found")
