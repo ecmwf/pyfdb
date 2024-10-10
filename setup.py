@@ -22,6 +22,6 @@ setup(
         "pytest-flakes",
     ],
     test_suite="tests",
-    install_requires=["cffi", "findlibs", "pyeccodes"],
+    install_requires=["cffi", "findlibs", "pyeccodes", "packaging"],
     zip_safe=False,
 )
