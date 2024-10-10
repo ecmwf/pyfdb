@@ -290,14 +290,47 @@ class FDB:
         fdb = pyfdb.FDB()
         # call fdb.archive, fdb.list, fdb.retrieve, fdb.flush as needed.
 
+        # Construct with a particular FDB_HOME
+        fdb = pyfdb.FDB(fdb_home="/path/to/fdb_home")
+
+        # Construct from a config dictionary
+        config = dict(
+            type="local",
+            engine="toc",
+            schema="path/to/schema",
+            spaces=[
+                dict(
+                    handler="Default",
+                    roots=[
+                        {"path": "/path/to/root"},
+                    ],
+                )
+            ],
+        )
+        fdb = pyfdb.FDB(config)
+
     See the module level pyfdb.list, pyfdb.retrieve, and pyfdb.archive
     docstrings for more information on these functions.
     """
 
     __fdb = None
 
-    def __init__(self, config=None, user_config=None):
+    def __init__(
+        self,
+        config=None,
+        user_config=None,
+        fdb_home=None,
+    ):
+        """
+        Args:
+        """
         fdb = ffi.new("fdb_handle_t**")
+
+        if fdb_home is not None and config is not None:
+            raise ValueError("Cannot specify both fdb_home and config")
+
+        if fdb_home is not None:
+            config = dict(fdb_home=str(fdb_home))
 
         if config is not None or user_config is not None:
 
