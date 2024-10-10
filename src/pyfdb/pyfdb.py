@@ -16,6 +16,8 @@ import io
 import json
 import os
 from functools import wraps
+from pathlib import Path
+from typing import Optional, Union
 
 import cffi
 import findlibs
@@ -317,9 +319,9 @@ class FDB:
 
     def __init__(
         self,
-        config=None,
-        user_config=None,
-        fdb_home=None,
+        config: Optional[dict] = None,
+        user_config: Optional[dict] = None,
+        fdb_home: Union[str, Path, None] = None,
     ):
         """
         Args:
