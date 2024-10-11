@@ -15,7 +15,9 @@
 import io
 import json
 import os
+import sys
 from functools import wraps
+from pathlib import Path
 
 import cffi
 import findlibs
@@ -40,11 +42,19 @@ class PatchedLib:
     and patches the accessors with automatic python-C error handling.
     """
 
+    loaded: bool = False
+
     def __init__(self):
-        self.path = findlibs.find("fdb5")
+        pass
+
+    def load(self, lib_path=None):
+        self.path = lib_path or findlibs.find("fdb5")
 
         if self.path is None:
             raise RuntimeError("FDB5 library not found")
+
+        if not Path(self.path).exists():
+            raise FileNotFoundError(f"Could not find the FDB5 library at {self.path}")
 
         ffi.cdef(self.__read_header())
         self.__lib = ffi.dlopen(self.path)
@@ -76,6 +86,7 @@ class PatchedLib:
                 f"This version of pyfdb ({__version__}) requires fdb version {__fdb_version__} or greater."
                 f"You have fdb version {self.version} loaded from {self.path}"
             )
+        self.loaded = True
 
     def __read_header(self):
         with open(os.path.join(os.path.dirname(__file__), "processed_fdb.h"), "r") as f:
@@ -102,8 +113,8 @@ class PatchedLib:
         return f"<pyfdb.pyfdb.PatchedLib FDB5 version {self.version} from {self.path}>"
 
 
-# Bootstrap the library
-
+# This doe no actually load the library
+# It is only loaded when the FDB class is instantiated by calling lib.load()
 lib = PatchedLib()
 
 
@@ -296,7 +307,11 @@ class FDB:
 
     __fdb = None
 
-    def __init__(self, config=None, user_config=None):
+    def __init__(self, config=None, user_config=None, lib_path=None):
+        global lib
+        if not lib.loaded:
+            lib.load(lib_path)
+
         fdb = ffi.new("fdb_handle_t**")
 
         if config is not None or user_config is not None:
@@ -368,7 +383,7 @@ class FDB:
         return self.__fdb
 
 
-fdb = None
+fdb = 0
 
 
 # Use functools.wraps to copy over the docstring from FDB.xxx to the module level functions
@@ -383,8 +398,11 @@ def archive(data) -> None:
 @wraps(FDB.list)
 def list(request, duplicates=False, keys=False) -> ListIterator:
     global fdb
+    print("internal", id(fdb))
     if not fdb:
         fdb = FDB()
+        print("internal", id(fdb))
+        print("sys.modules", id(sys.modules[__name__].fdb))
     return ListIterator(fdb, request, duplicates, keys)
 
 
