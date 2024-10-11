@@ -1,6 +1,87 @@
+[build-system]
+requires = [
+  "setuptools >= 61.0",
+]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "pyfdb"
+dynamic = ["version"]
+
+description="Python interface to FDB"
+keywords = [
+  "python",
+  "fdb",
+  "tools",
+]
+
+license = { file = "LICENSE" }
+authors = [
+  { name = "European Centre for Medium-Range Weather Forecasts (ECMWF)", email = "software.support@ecmwf.int" },
+]
+
+urls.Documentation = "https://github.com/ecmwf/pyfdb"
+urls.Homepage = "https://github.com/ecmwf/pyfdb"
+urls.Issues = "https://github.com/ecmwf/pyfdb/issues"
+urls.Repository = "https://github.com/ecmwf/pyfdb"
+
+requires-python = ">=3.9"
+
+dependencies = [
+  "cffi",
+  "findlibs",
+  "pyeccodes",
+  "isort",
+  "black",
+  "flake8",
+  "tox>=4.19"
+]
+
+optional-dependencies.tests = [
+  "pytest",
+  "pytest-cov",
+  "pytest-flakes",
+]
+
+[tool.setuptools.packages.find]
+where = ["src", "tests"]
+
+[tool.setuptools.package-data]
+pyfdb = ["processed_fdb.h"]
+
 [tool.black]
 line-length = 120
+include = '\.pyi?$'
 
 [tool.isort]
 profile = "black"
 line_length = 120
+skip_glob=".*"
+skip = ["setup.py"]
+src_paths = ["src", "tests"]
+
+[tool.flake8]
+max-line-length = 120
+show-source = true
+exclude = ".*"
+extend-ignore = "E203"
+per-file-ignores = "*/__init__.py: F401,F403"
+
+[tool.tox]
+legacy_tox_ini = """
+[tox]
+env_list =
+    py{38,39,310,311,312}
+minversion = 4.16.0
+
+[testenv]
+description = run the tests with pytest
+package = wheel
+wheel_build_env = .pkg
+deps =
+    pytest>=6
+pass_env =
+    FDB_HOME
+commands =
+    pytest {tty:--color=yes} {posargs}
+"""
