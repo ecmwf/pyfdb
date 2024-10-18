@@ -55,7 +55,7 @@ spaces:
         # Check that the archive path is in the tmp directory
         # On OSX tmp file paths look like /private/var/folders/.../T/tmp.../x138-300.grib
         # While the tmp directory looks like /var/folders/.../T/tmp.../ hence why this check is not "startwith"
-        assert tmp_home in list_output[0]["path"]
+        assert str(Path(tmp_home).resolve()) in str(Path(list_output[0]["path"]).resolve())
 
 
 def test_direct_config():
