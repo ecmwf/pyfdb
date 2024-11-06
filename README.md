@@ -27,7 +27,7 @@ python -m pip install --upgrade git+https://github.com/ecmwf/pyfdb.git@master
 &nbsp;
 ## 2. Example
 
-An example of archival, listing and retrieval via pyfdb is shown next. For the example to work, FDB5 must be installed in the system, as well as the shutil, pyeccodes and pyfdb python packages. The GRIB files involved can be found under the `tests/` folder in the pyfdb Git repository (https://github.com/ecmwf/pyfdb).
+An example of archival, listing and retrieval via pyfdb is shown next. For the example to work, FDB5 must be installed in the system, as well as the shutil, eccodes-python and pyfdb python packages. The GRIB files involved can be found under the `tests/unit/` folder in the pyfdb Git repository (https://github.com/ecmwf/pyfdb).
 
 ### Initialising FDB
 ```python
@@ -197,8 +197,8 @@ datareader.seek(0)
 
 #### Decode GRIB
 ```python
-from pyeccodes import Reader
-reader = Reader(datareader)
+from eccodes import StreamReader
+reader = StreamReader(datareader)
 grib = next(reader)
 grib.dump()
 # [...redacted...]
@@ -218,7 +218,12 @@ At the moment this runs isort, black and flake8, if any of these encounter error
 
 ### Run Unit Tests
 
-To run the unit tests, make sure that the `pytest` module is installed first:
+To run the unit tests, make sure that the `pytest` module is installed first. To install it, you can simply run
+
+```sh
+pip install ".[test]"
+```
+, which installs the optional testing dependencies needed for pytest, as well as liniting. Simply run
 
 ```sh
 python -m pytest
