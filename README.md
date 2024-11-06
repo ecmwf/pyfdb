@@ -218,7 +218,12 @@ At the moment this runs isort, black and flake8, if any of these encounter error
 
 ### Run Unit Tests
 
-To run the unit tests, make sure that the `pytest` module is installed first:
+To run the unit tests, make sure that the `pytest` module is installed first. To install it, you can simply run
+
+```sh
+pip install ".[test]"
+```
+, which installs the optional testing dependencies needed for pytest, as well as liniting. Simply run
 
 ```sh
 python -m pytest
