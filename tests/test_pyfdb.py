@@ -10,7 +10,7 @@
 import os
 import shutil
 
-from pyeccodes import Reader
+from eccodes import StreamReader
 
 import pyfdb
 
@@ -176,7 +176,7 @@ def test_archival_read():
     print("")
     print("decode GRIB")
 
-    reader = Reader(datareader)
+    reader = StreamReader(datareader)
     grib = next(reader)
     grib.dump()
 
