@@ -21,7 +21,7 @@ import cffi
 import findlibs
 from packaging import version
 
-__version__ = "0.0.4"
+__version__ = "0.0.5"
 
 __fdb_version__ = "5.12.1"
 
