@@ -1,3 +1,4 @@
+import os
 import shutil
 from pathlib import Path
 from tempfile import TemporaryDirectory
@@ -6,14 +7,16 @@ from pytest import raises
 
 import pyfdb
 
+IS_ATOS = os.environ.get("SCRATCHDIR", None)
+
 
 def test_conflicting_arguments():
-    "You can't pass both fdb_home and config because the former overrides the latter"
+    "You can't pass both fdb_home and config because the former overrides the latter!"
     assert raises(ValueError, pyfdb.FDB, fdb_home="/tmp", config={})
 
 
 def test_fdb_home():
-    with TemporaryDirectory() as tmp_home:
+    with TemporaryDirectory(dir=IS_ATOS) as tmp_home:
         tests_dir = Path(__file__).parent
         schema_path = tests_dir / "default_fdb_schema"
 
@@ -61,11 +64,11 @@ spaces:
         # tmp_home looks like '/etc/ecmwf/ssd/ssd1/tmpdirs/***.31103395/tmpg137a4ml'
         # while the archive path looks like '/etc/ecmwf/ssd/ssd1/tmpdirs/***.31103395/data/fdb/...'
 
-        # assert str(Path(tmp_home).resolve()) in str(Path(list_output[0]["path"]).resolve())
+        assert os.path.realpath(tmp_home) in os.path.realpath(list_output[0]["path"])
 
 
 def test_direct_config():
-    with TemporaryDirectory() as tmp_root:
+    with TemporaryDirectory(dir=IS_ATOS) as tmp_root:
         tests_dir = Path(__file__).parent
 
         config = dict(
@@ -95,11 +98,11 @@ def test_direct_config():
         # While the tmp directory looks like /var/folders/.../T/tmp.../ hence why this check is not "startwith"
 
         # Disabled for now because the HPC has a different convention and I don't know how to deal with all cases
-        # assert tmp_root in list_output[0]["path"]
+        assert os.path.realpath(tmp_root) in os.path.realpath(list_output[0]["path"])
 
 
 def test_opening_two_fdbs():
-    with TemporaryDirectory() as tmp_root1, TemporaryDirectory() as tmp_root2:
+    with TemporaryDirectory(dir=IS_ATOS) as tmp_root1, TemporaryDirectory(dir=IS_ATOS) as tmp_root2:
         tests_dir = Path(__file__).parent
 
         fdb1 = pyfdb.FDB(
@@ -139,8 +142,7 @@ def test_opening_two_fdbs():
             fdb.archive(data)
             fdb.flush()
 
-        # Disabled for now
-        # for fdb, root in [(fdb1, tmp_root1), (fdb2, tmp_root2)]:
-        #     list_output = list(fdb.list(keys=True))
-        #     assert len(list_output) == 1
-        #     assert root in list_output[0]["path"]
+        for fdb, root in [(fdb1, tmp_root1), (fdb2, tmp_root2)]:
+            list_output = list(fdb.list(keys=True))
+            assert len(list_output) == 1
+            assert os.path.realpath(root) in os.path.realpath(list_output[0]["path"])
