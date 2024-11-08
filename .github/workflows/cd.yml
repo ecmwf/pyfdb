@@ -6,6 +6,7 @@ on:
       - "**"
 
 jobs:
-  pypi:
+  deploy-to-pypi:
+    name: continuous-delivery-to-pypi
     uses: ecmwf-actions/reusable-workflows/.github/workflows/cd-pypi.yml@v2
     secrets: inherit
