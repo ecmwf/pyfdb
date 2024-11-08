@@ -25,7 +25,7 @@ urls.Homepage = "https://github.com/ecmwf/pyfdb"
 urls.Issues = "https://github.com/ecmwf/pyfdb/issues"
 urls.Repository = "https://github.com/ecmwf/pyfdb"
 
-requires-python = ">=3.9"
+requires-python = ">=3.8"
 
 dependencies = [
   "cffi",
