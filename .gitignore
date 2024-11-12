@@ -8,3 +8,4 @@ dist/
 **/build
 *.grib
 !data/*.grib
+src/pyfdb/fdb_py.cc
