@@ -1,8 +1,7 @@
 from pathlib import Path
 from tempfile import TemporaryDirectory
 
-import pyfdb
-
+from pyfdb import FDB
 
 def test_direct_config():
     with TemporaryDirectory() as tmp_root:
@@ -22,7 +21,7 @@ def test_direct_config():
             ],
         )
 
-        fdb = pyfdb.FDB(config)
+        fdb = FDB(config)
         data = open(tests_dir / "x138-300.grib", "rb").read()
         fdb.archive(data)
         fdb.flush()

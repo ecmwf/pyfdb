@@ -11,10 +11,9 @@ import os
 import shutil
 
 from eccodes import StreamReader
+from pyfdb import FDB, Config
 
-import pyfdb
-
-fdb = pyfdb.FDB()
+fdb = FDB(Config())
 
 # Archive
 key = {
@@ -35,16 +34,16 @@ key = {
 def test_archival_read():
 
     filename = os.path.join(os.path.dirname(__file__), "x138-300.grib")
-    pyfdb.archive(open(filename, "rb").read())
+    fdb.archive(open(filename, "rb").read())
 
     key["levelist"] = "400"
     filename = os.path.join(os.path.dirname(__file__), "x138-400.grib")
-    pyfdb.archive(open(filename, "rb").read())
+    fdb.archive(open(filename, "rb").read())
 
     key["expver"] = "xxxy"
     filename = os.path.join(os.path.dirname(__file__), "y138-400.grib")
-    pyfdb.archive(open(filename, "rb").read())
-    pyfdb.flush()
+    fdb.archive(open(filename, "rb").read())
+    fdb.flush()
 
     # List
     request = {
@@ -61,7 +60,7 @@ def test_archival_read():
         "param": ["138", 155, "t"],
     }
     print("direct function, request as dictionary:", request)
-    for el in pyfdb.list(request, True):
+    for el in list(request, True):
         assert el["path"]
         assert el["path"].find("rd:xxxx:oper:20191110:0000:g/an:pl.") != -1
         assert "keys" not in el
@@ -70,7 +69,7 @@ def test_archival_read():
     request["param"] = "138"
     print("")
     print("direct function, updated dictionary:", request)
-    it = pyfdb.list(request, True, True)
+    it = fdb.list(request, True, True)
 
     el = next(it)
     assert el["path"]
@@ -136,7 +135,7 @@ def test_archival_read():
     request["expver"] = "xxxy"
     filename = os.path.join(os.path.dirname(__file__), "y138-400bis.grib")
     print("save to file ", filename)
-    with open(filename, "wb") as o, pyfdb.retrieve(request) as i:
+    with open(filename, "wb") as o, fdb.retrieve(request) as i:
         shutil.copyfileobj(i, o)
 
     # request = {
@@ -154,7 +153,7 @@ def test_archival_read():
     print("")
     print("FDB retrieve")
     print("direct function, retrieve from request:", request)
-    datareader = pyfdb.retrieve(request)
+    datareader = fdb.retrieve(request)
 
     print("")
     print("reading a small chunk")
