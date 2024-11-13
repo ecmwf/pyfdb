@@ -335,6 +335,16 @@ class FDB:
         else:
             lib.fdb_archive_multiple(self.ctype, Request(request).ctype, ffi.from_buffer(data), len(data))
 
+    def archive_single(self, data, request) -> None:
+        """Archive data into the FDB5 database
+
+        Args:
+            data (bytes): bytes data to be archived
+            request (dict | None): dictionary representing the request to be associated with the data,
+                if not provided the key will be constructed from the data.
+        """
+        lib.fdb_archive(self.ctype, Key(request).ctype, ffi.from_buffer(data), len(data))
+
     def flush(self) -> None:
         """Flush any archived data to disk"""
         lib.fdb_flush(self.ctype)
