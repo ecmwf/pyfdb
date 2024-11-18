@@ -272,11 +272,10 @@ class DataRetriever(io.RawIOBase):
         lib.fdb_datareader_size(self.__dataread, size)
         return size[0]
 
-    
     def read(self, size=-1) -> bytes:
         self.open()
         if isinstance(size, int):
-            if (size == -1 ): 
+            if size == -1:
                 size = self.size()
             buf = bytearray(size)
             read = ffi.new("long*")
