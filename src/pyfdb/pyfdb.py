@@ -267,12 +267,19 @@ class DataRetriever(io.RawIOBase):
         lib.fdb_datareader_tell(self.__dataread, where)
         return where[0]
 
-    def read(self, count=-1) -> bytes:
+    def size(self):
+        size = ffi.new("long*")
+        lib.fdb_datareader_size(self.__dataread, size)
+        return size[0]
+
+    def read(self, size=-1) -> bytes:
         self.open()
-        if isinstance(count, int):
-            buf = bytearray(count)
+        if isinstance(size, int):
+            if size == -1:
+                size = self.size()
+            buf = bytearray(size)
             read = ffi.new("long*")
-            lib.fdb_datareader_read(self.__dataread, ffi.from_buffer(buf), count, read)
+            lib.fdb_datareader_read(self.__dataread, ffi.from_buffer(buf), size, read)
             return buf[0 : read[0]]
         return bytearray()
 

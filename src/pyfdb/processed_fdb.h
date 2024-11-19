@@ -45,6 +45,7 @@ int fdb_datareader_close(fdb_datareader_t* dr);
 int fdb_datareader_tell(fdb_datareader_t* dr, long* pos);
 int fdb_datareader_seek(fdb_datareader_t* dr, long pos);
 int fdb_datareader_skip(fdb_datareader_t* dr, long count);
+int fdb_datareader_size(fdb_datareader_t* dr, long* size);
 int fdb_datareader_read(fdb_datareader_t* dr, void *buf, long count, long* read);
 int fdb_delete_datareader(fdb_datareader_t* dr);
 
