@@ -95,3 +95,14 @@ jobs:
           failure
           fixed
           success
+
+  cd-to-pypi:
+    name: continouse-delivery-to-pypi
+    uses: ecmwf-actions/reusable-workflows/.github/workflows/cd-pypi.yml@v2
+    if: github.event_name == 'push' && contains(github.ref, 'refs/tags/')
+    needs:
+      - downstream-ci
+      - private-downstream-ci
+      - downstream-ci-hpc
+      - private-downstream-ci-hpc
+    secrets: inherit
