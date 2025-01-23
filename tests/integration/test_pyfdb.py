@@ -9,6 +9,7 @@
 # does it submit to any jurisdiction.
 import os
 import shutil
+import tests.util as util
 
 from eccodes import StreamReader
 
@@ -26,6 +27,7 @@ key = {
     "time": "0000",
     "step": "0",
     "param": "138",
+
     "class": "rd",
     "type": "an",
     "expver": "xxxx",
@@ -34,15 +36,15 @@ key = {
 
 def test_archival_read():
 
-    filename = os.path.join(os.path.dirname(__file__), "x138-300.grib")
+    filename = util.get_test_data_root() / "x138-300.grib"
     pyfdb.archive(open(filename, "rb").read())
 
     key["levelist"] = "400"
-    filename = os.path.join(os.path.dirname(__file__), "x138-400.grib")
+    filename = util.get_test_data_root() / "x138-400.grib"
     pyfdb.archive(open(filename, "rb").read())
 
     key["expver"] = "xxxy"
-    filename = os.path.join(os.path.dirname(__file__), "y138-400.grib")
+    filename = util.get_test_data_root() / "y138-400.grib"
     pyfdb.archive(open(filename, "rb").read())
     pyfdb.flush()
 

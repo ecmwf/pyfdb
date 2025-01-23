@@ -1,12 +1,12 @@
-from pathlib import Path
 from tempfile import TemporaryDirectory
 
 import pyfdb
+import tests.util as util
 
 
 def test_direct_config():
     with TemporaryDirectory() as tmp_root:
-        tests_dir = Path(__file__).parent
+        tests_dir = util.get_test_data_root()
 
         config = dict(
             type="local",
@@ -38,7 +38,7 @@ def test_direct_config():
 
 def test_opening_two_fdbs():
     with TemporaryDirectory() as tmp_root1, TemporaryDirectory() as tmp_root2:
-        tests_dir = Path(__file__).parent
+        tests_dir = util.get_test_data_root()
 
         fdb1 = pyfdb.FDB(
             dict(

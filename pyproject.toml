@@ -41,7 +41,8 @@ dependencies = [
 test = [
   "pytest",
   "pytest-cov",
-  "pytest-flakes"
+  "pytest-flakes",
+  "gitpython"
 ]
 
 [tool.setuptools.packages.find]
