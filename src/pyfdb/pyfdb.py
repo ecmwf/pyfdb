@@ -12,10 +12,12 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import builtins
 import io
 import json
 import os
 from functools import wraps
+from typing import Union, overload
 
 import cffi
 import findlibs
@@ -56,7 +58,9 @@ class PatchedLib:
         for f in dir(self.__lib):
             try:
                 attr = getattr(self.__lib, f)
-                setattr(self, f, self.__check_error(attr, f) if callable(attr) else attr)
+                setattr(
+                    self, f, self.__check_error(attr, f) if callable(attr) else attr
+                )
             except Exception as e:
                 print(e)
                 print("Error retrieving attribute", f, "from library")
@@ -89,9 +93,15 @@ class PatchedLib:
 
         def wrapped_fn(*args, **kwargs):
             retval = fn(*args, **kwargs)
-            if retval != self.__lib.FDB_SUCCESS and retval != self.__lib.FDB_ITERATION_COMPLETE:
+            if (
+                retval != self.__lib.FDB_SUCCESS
+                and retval != self.__lib.FDB_ITERATION_COMPLETE
+            ):
                 error_str = "Error in function {}: {}".format(
-                    name, ffi.string(self.__lib.fdb_error_string(retval)).decode("utf-8", "backslashreplace")
+                    name,
+                    ffi.string(self.__lib.fdb_error_string(retval)).decode(
+                        "utf-8", "backslashreplace"
+                    ),
                 )
                 raise FDBException(error_str)
             return retval
@@ -110,7 +120,7 @@ lib = PatchedLib()
 class Key:
     __key = None
 
-    def __init__(self, keys):
+    def __init__(self, keys: dict[str, str]):
         key = ffi.new("fdb_key_t**")
         lib.fdb_new_key(key)
         # Set free function
@@ -119,7 +129,7 @@ class Key:
         for k, v in keys.items():
             self.set(k, v)
 
-    def set(self, param, value):
+    def set(self, param: str, value: str):
         lib.fdb_key_add(
             self.__key,
             ffi.new("const char[]", param.encode("ascii")),
@@ -198,7 +208,11 @@ class ListIterator:
             raise StopIteration
 
         lib.fdb_listiterator_attrs(self.__iterator, self.path, self.off, self.len)
-        el = dict(path=ffi.string(self.path[0]).decode("utf-8"), offset=self.off[0], length=self.len[0])
+        el = dict(
+            path=ffi.string(self.path[0]).decode("utf-8"),
+            offset=self.off[0],
+            length=self.len[0],
+        )
 
         if self.__key:
             splitkey = ffi.new("fdb_split_key_t**")
@@ -213,7 +227,9 @@ class ListIterator:
 
             meta = dict()
             while lib.fdb_splitkey_next_metadata(key, k, v, level) == 0:
-                meta[ffi.string(k[0]).decode("utf-8")] = ffi.string(v[0]).decode("utf-8")
+                meta[ffi.string(k[0]).decode("utf-8")] = ffi.string(v[0]).decode(
+                    "utf-8"
+                )
             el["keys"] = meta
 
         return el
@@ -226,7 +242,7 @@ class DataRetriever(io.RawIOBase):
     __dataread = None
     __opened = False
 
-    def __init__(self, fdb, request, expand=True):
+    def __init__(self, fdb, request: dict[str, str], expand: bool=True):
         dataread = ffi.new("fdb_datareader_t **")
         lib.fdb_new_datareader(dataread)
         self.__dataread = ffi.gc(dataread[0], lib.fdb_delete_datareader)
@@ -329,18 +345,52 @@ class FDB:
         # Set free function
         self.__fdb = ffi.gc(fdb[0], lib.fdb_delete_handle)
 
-    def archive(self, data, request=None) -> None:
+    @overload
+    def archive(
+        self, data: bytes, request_or_key: Request | dict | None = None
+    ) -> None: ...
+
+    @overload
+    def archive(self, data: bytes, request_or_key: Key) -> None: ...
+
+    def archive(
+        self, data: bytes, request_or_key: Key | Request | dict | None = None
+    ) -> None:
         """Archive data into the FDB5 database
 
         Args:
-            data (bytes): bytes data to be archived
-            request (dict | None): dictionary representing the request to be associated with the data,
-                if not provided the key will be constructed from the data.
+            data: bytes data to be archived
+            request_or_key: Depending on the type, one of the following:
+                Key:
+                    Calls the fdb archive API. The key is used to set the meta-information of 
+                    the written bytes. There is no check whether the written bytes and the meta-
+                    information is matching.
+                Request:
+                    Calls the fdb archive multiple API. The given data will be checked against the
+                    given request. In case of a mismatch an
+                Dict[str, str]:
+                None:
+                dictionary representing the request to be associated with the data,
+                    if not provided the key will be constructed from the data.
         """
-        if request is None:
-            lib.fdb_archive_multiple(self.ctype, ffi.NULL, ffi.from_buffer(data), len(data))
-        else:
-            lib.fdb_archive_multiple(self.ctype, Request(request).ctype, ffi.from_buffer(data), len(data))
+        match request_or_key:
+            case Key():
+                lib.fdb_archive(self.ctype, request_or_key.ctype, data, len(data))
+            case Request():
+                lib.fdb_archive_multiple(
+                    self.ctype, request_or_key.ctype, ffi.from_buffer(data), len(data)
+                )
+            case builtins.dict():
+                lib.fdb_archive_multiple(
+                    self.ctype,
+                    Request(request_or_key).ctype,
+                    ffi.from_buffer(data),
+                    len(data),
+                )
+            case None:
+                lib.fdb_archive_multiple(
+                    self.ctype, ffi.NULL, ffi.from_buffer(data), len(data)
+                )
 
     def flush(self) -> None:
         """Flush any archived data to disk"""
@@ -380,11 +430,19 @@ fdb = None
 
 # Use functools.wraps to copy over the docstring from FDB.xxx to the module level functions
 @wraps(FDB.archive)
-def archive(data) -> None:
+def archive(data: bytes, request_or_key: Key | Request | dict | None = None) -> None:
+    """Archives bytes to the FDB
+
+    Args:
+        data: data in bytes
+        request_or_key: Depending on the type the following functions are triggered:
+            Key:
+
+    """
     global fdb
     if not fdb:
         fdb = FDB()
-    fdb.archive(data)
+    fdb.archive(data, request_or_key)
 
 
 @wraps(FDB.list)

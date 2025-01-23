@@ -7,7 +7,6 @@
 # In applying this licence, ECMWF does not waive the privileges and immunities
 # granted to it by virtue of its status as an intergovernmental organisation nor
 # does it submit to any jurisdiction.
-import os
 import shutil
 import tests.util as util
 
@@ -122,20 +121,20 @@ def test_archival_read():
         "type": "an",
     }
 
-    filename = os.path.join(os.path.dirname(__file__), "x138-300bis.grib")
+    filename = util.get_test_data_root() / "x138-300bis.grib"
     print("")
     print("save to file ", filename)
     with open(filename, "wb") as o, fdb.retrieve(request) as i:
         shutil.copyfileobj(i, o)
 
     request["levelist"] = "400"
-    filename = os.path.join(os.path.dirname(__file__), "x138-400bis.grib")
+    filename = util.get_test_data_root() / "x138-400bis.grib"
     print("save to file ", filename)
     with open(filename, "wb") as o, fdb.retrieve(request) as i:
         shutil.copyfileobj(i, o)
 
     request["expver"] = "xxxy"
-    filename = os.path.join(os.path.dirname(__file__), "y138-400bis.grib")
+    filename = util.get_test_data_root() / "y138-400bis.grib"
     print("save to file ", filename)
     with open(filename, "wb") as o, pyfdb.retrieve(request) as i:
         shutil.copyfileobj(i, o)
@@ -171,7 +170,7 @@ def test_archival_read():
 
     request["levelist"] = [300, "400"]
     request["expver"] = "xxxx"
-    filename = os.path.join(os.path.dirname(__file__), "foo.grib")
+    filename = util.get_test_data_root() / "foo.grib"
 
     print("")
     print("save to file ", filename)
