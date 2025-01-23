@@ -8,13 +8,10 @@
 # granted to it by virtue of its status as an intergovernmental organisation nor
 # does it submit to any jurisdiction.
 import shutil
-import tests.util as util
 
 from eccodes import StreamReader
 
-import pyfdb
-
-fdb = pyfdb.FDB()
+import tests.util as util
 
 # Archive
 key = {
@@ -32,19 +29,25 @@ key = {
 }
 
 
-def test_archival_read():
+def test_archival_read(setup_fdb_tmp_dir, tmp_path_factory):
+    """Full integration test. Testing all of the exposed API of FDB"""
+    root_dir, fdb = setup_fdb_tmp_dir()
+    tmp_output_directory = tmp_path_factory.mktemp("output")
 
-    filename = util.get_test_data_root() / "x138-300.grib"
-    pyfdb.archive(open(filename, "rb").read())
+    print(root_dir)
+
+    with open(util.get_test_data_root() / "x138-300.grib", "rb") as filename:
+        fdb.archive(filename.read())
 
     key["levelist"] = "400"
-    filename = util.get_test_data_root() / "x138-400.grib"
-    pyfdb.archive(open(filename, "rb").read())
+    with open(util.get_test_data_root() / "x138-400.grib", "rb") as filename:
+        fdb.archive(filename.read())
 
     key["expver"] = "xxxy"
-    filename = util.get_test_data_root() / "y138-400.grib"
-    pyfdb.archive(open(filename, "rb").read())
-    pyfdb.flush()
+    with open(util.get_test_data_root() / "y138-400.grib", "rb") as filename:
+        fdb.archive(filename.read())
+
+    fdb.flush()
 
     # List
     request = {
@@ -61,7 +64,7 @@ def test_archival_read():
         "param": ["138", 155, "t"],
     }
     print("direct function, request as dictionary:", request)
-    for el in pyfdb.list(request, True):
+    for el in fdb.list(request, True):
         assert el["path"]
         assert el["path"].find("rd:xxxx:oper:20191110:0000:g/an:pl.") != -1
         assert "keys" not in el
@@ -70,7 +73,7 @@ def test_archival_read():
     request["param"] = "138"
     print("")
     print("direct function, updated dictionary:", request)
-    it = pyfdb.list(request, True, True)
+    it = fdb.list(request, True, True)
 
     el = next(it)
     assert el["path"]
@@ -121,28 +124,52 @@ def test_archival_read():
         "type": "an",
     }
 
-    filename = util.get_test_data_root() / "x138-300bis.grib"
+    # x138-300
     print("")
-    print("save to file ", filename)
-    with open(filename, "wb") as o, fdb.retrieve(request) as i:
+    with (
+        open(tmp_output_directory / "x138-300bis.grib", "wb") as o,
+        fdb.retrieve(request) as i,
+    ):
+        print("save to file ", tmp_output_directory / "x138-300bis.grib")
         shutil.copyfileobj(i, o)
 
+    assert util.check_grib_files_for_same_content(
+        util.get_test_data_root() / "x138-300.grib",
+        tmp_output_directory / "x138-300bis.grib",
+    )
+
+    # x138-400
     request["levelist"] = "400"
-    filename = util.get_test_data_root() / "x138-400bis.grib"
-    print("save to file ", filename)
-    with open(filename, "wb") as o, fdb.retrieve(request) as i:
+    with (
+        open(tmp_output_directory / "x138-400bis.grib", "wb") as o,
+        fdb.retrieve(request) as i,
+    ):
+        print("save to file ", tmp_output_directory / "x138-400bis.grib")
         shutil.copyfileobj(i, o)
 
+    assert util.check_grib_files_for_same_content(
+        util.get_test_data_root() / "x138-400.grib",
+        tmp_output_directory / "x138-400bis.grib",
+    )
+
+    # y138-400
     request["expver"] = "xxxy"
-    filename = util.get_test_data_root() / "y138-400bis.grib"
-    print("save to file ", filename)
-    with open(filename, "wb") as o, pyfdb.retrieve(request) as i:
+    with (
+        open(tmp_output_directory / "y138-400bis.grib", "wb") as o,
+        fdb.retrieve(request) as i,
+    ):
+        print("save to file ", tmp_output_directory / "y138-400bis.grib")
         shutil.copyfileobj(i, o)
+
+    assert util.check_grib_files_for_same_content(
+        util.get_test_data_root() / "y138-400.grib",
+        tmp_output_directory / "y138-400bis.grib",
+    )
 
     print("")
     print("FDB retrieve")
     print("direct function, retrieve from request:", request)
-    datareader = pyfdb.retrieve(request)
+    datareader = fdb.retrieve(request)
 
     print("")
     print("reading a small chunk")
@@ -170,9 +197,34 @@ def test_archival_read():
 
     request["levelist"] = [300, "400"]
     request["expver"] = "xxxx"
-    filename = util.get_test_data_root() / "foo.grib"
 
     print("")
-    print("save to file ", filename)
-    with open(filename, "wb") as o, fdb.retrieve(request) as i:
+    with (
+        open(tmp_output_directory / "foo.grib", "wb") as o,
+        fdb.retrieve(request) as i,
+    ):
+        print("save to file ", tmp_output_directory / "foo.grib")
         shutil.copyfileobj(i, o)
+
+    # Check whether retrieval of two field is equal with the
+    # data content of the individual fields
+    with open(tmp_output_directory / "foo.grib", "rb") as merged_file:
+
+        merged_reader = StreamReader(merged_file)
+        merged_grib = next(merged_reader)
+
+        with open(util.get_test_data_root() / "x138-300.grib", "rb") as grib_part_1:
+
+            reader1 = StreamReader(grib_part_1)
+            grib_part_1 = next(reader1)
+
+            assert util.check_numpy_array_equal(merged_grib.data, grib_part_1.data)
+
+        merged_grib = next(merged_reader)
+
+        with open(util.get_test_data_root() / "x138-400.grib", "rb") as grib_part_2:
+
+            reader2 = StreamReader(grib_part_2)
+            grib_part_2 = next(reader2)
+
+            assert util.check_numpy_array_equal(merged_grib.data, grib_part_2.data)

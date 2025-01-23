@@ -1,8 +1,7 @@
 import tests.util as util
-from tests.fixtures import setup_fdb_tmp_dir
+
 
 def test_direct_config(setup_fdb_tmp_dir):
-
     data = open(util.get_test_data_root() / "x138-300.grib", "rb").read()
     tmp_root, fdb = setup_fdb_tmp_dir()
     fdb.archive(data)
@@ -18,13 +17,11 @@ def test_direct_config(setup_fdb_tmp_dir):
 
 
 def test_opening_two_fdbs(setup_fdb_tmp_dir):
-
     tmp_root1, fdb1 = setup_fdb_tmp_dir()
     tmp_root2, fdb2 = setup_fdb_tmp_dir()
 
     print(tmp_root1)
     print(tmp_root2)
-
 
     for fdb in [fdb1, fdb2]:
         data = open(util.get_test_data_root() / "x138-300.grib", "rb").read()

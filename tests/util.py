@@ -1,11 +1,13 @@
-import git
 import os
-
 from pathlib import Path
+
+import git
+import numpy as np
+from eccodes import StreamReader
 
 
 def get_test_data_root() -> Path:
-    return find_git_root() /  "tests" / "data" 
+    return Path(find_git_root()) / "tests" / "data"
 
 
 def find_git_root() -> Path:
@@ -13,3 +15,20 @@ def find_git_root() -> Path:
     git_root = git_repo.git.rev_parse("--show-toplevel")
 
     return Path(git_root)
+
+
+def check_grib_files_for_same_content(file1: Path, file2: Path):
+    with file1.open("rb") as file1:
+        with file2.open("rb") as file2:
+
+            reader1 = StreamReader(file1)
+            grib1 = next(reader1)
+
+            reader2 = StreamReader(file2)
+            grib2 = next(reader2)
+
+            return check_numpy_array_equal(grib1.data, grib2.data)
+
+
+def check_numpy_array_equal(array1, array2):
+    return np.array_equal(array1, array2)

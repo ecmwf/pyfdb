@@ -17,7 +17,7 @@ import io
 import json
 import os
 from functools import wraps
-from typing import Union, overload
+from typing import overload
 
 import cffi
 import findlibs
@@ -58,9 +58,7 @@ class PatchedLib:
         for f in dir(self.__lib):
             try:
                 attr = getattr(self.__lib, f)
-                setattr(
-                    self, f, self.__check_error(attr, f) if callable(attr) else attr
-                )
+                setattr(self, f, self.__check_error(attr, f) if callable(attr) else attr)
             except Exception as e:
                 print(e)
                 print("Error retrieving attribute", f, "from library")
@@ -93,15 +91,10 @@ class PatchedLib:
 
         def wrapped_fn(*args, **kwargs):
             retval = fn(*args, **kwargs)
-            if (
-                retval != self.__lib.FDB_SUCCESS
-                and retval != self.__lib.FDB_ITERATION_COMPLETE
-            ):
+            if retval != self.__lib.FDB_SUCCESS and retval != self.__lib.FDB_ITERATION_COMPLETE:
                 error_str = "Error in function {}: {}".format(
                     name,
-                    ffi.string(self.__lib.fdb_error_string(retval)).decode(
-                        "utf-8", "backslashreplace"
-                    ),
+                    ffi.string(self.__lib.fdb_error_string(retval)).decode("utf-8", "backslashreplace"),
                 )
                 raise FDBException(error_str)
             return retval
@@ -227,9 +220,7 @@ class ListIterator:
 
             meta = dict()
             while lib.fdb_splitkey_next_metadata(key, k, v, level) == 0:
-                meta[ffi.string(k[0]).decode("utf-8")] = ffi.string(v[0]).decode(
-                    "utf-8"
-                )
+                meta[ffi.string(k[0]).decode("utf-8")] = ffi.string(v[0]).decode("utf-8")
             el["keys"] = meta
 
         return el
@@ -242,7 +233,7 @@ class DataRetriever(io.RawIOBase):
     __dataread = None
     __opened = False
 
-    def __init__(self, fdb, request: dict[str, str], expand: bool=True):
+    def __init__(self, fdb, request: dict[str, str], expand: bool = True):
         dataread = ffi.new("fdb_datareader_t **")
         lib.fdb_new_datareader(dataread)
         self.__dataread = ffi.gc(dataread[0], lib.fdb_delete_datareader)
@@ -346,23 +337,19 @@ class FDB:
         self.__fdb = ffi.gc(fdb[0], lib.fdb_delete_handle)
 
     @overload
-    def archive(
-        self, data: bytes, request_or_key: Request | dict | None = None
-    ) -> None: ...
+    def archive(self, data: bytes, request_or_key: Request | dict | None = None) -> None: ...
 
     @overload
     def archive(self, data: bytes, request_or_key: Key) -> None: ...
 
-    def archive(
-        self, data: bytes, request_or_key: Key | Request | dict | None = None
-    ) -> None:
+    def archive(self, data: bytes, request_or_key: Key | Request | dict | None = None) -> None:
         """Archive data into the FDB5 database
 
         Args:
             data: bytes data to be archived
             request_or_key: Depending on the type, one of the following:
                 Key:
-                    Calls the fdb archive API. The key is used to set the meta-information of 
+                    Calls the fdb archive API. The key is used to set the meta-information of
                     the written bytes. There is no check whether the written bytes and the meta-
                     information is matching.
                 Request:
@@ -377,9 +364,7 @@ class FDB:
             case Key():
                 lib.fdb_archive(self.ctype, request_or_key.ctype, data, len(data))
             case Request():
-                lib.fdb_archive_multiple(
-                    self.ctype, request_or_key.ctype, ffi.from_buffer(data), len(data)
-                )
+                lib.fdb_archive_multiple(self.ctype, request_or_key.ctype, ffi.from_buffer(data), len(data))
             case builtins.dict():
                 lib.fdb_archive_multiple(
                     self.ctype,
@@ -388,9 +373,7 @@ class FDB:
                     len(data),
                 )
             case None:
-                lib.fdb_archive_multiple(
-                    self.ctype, ffi.NULL, ffi.from_buffer(data), len(data)
-                )
+                lib.fdb_archive_multiple(self.ctype, ffi.NULL, ffi.from_buffer(data), len(data))
 
     def flush(self) -> None:
         """Flush any archived data to disk"""

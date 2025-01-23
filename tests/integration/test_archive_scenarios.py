@@ -1,15 +1,13 @@
 import numpy as np
-from eccodes import StreamReader
 import pytest
+from eccodes import StreamReader
 
 import tests.util as util
 from pyfdb.pyfdb import FDBException, Key, Request
 
-from tests.fixtures import setup_fdb_tmp_dir
-
 
 def test_archive_different_keys(setup_fdb_tmp_dir):
-    """Testing whether different keys lead to two entries in the FDB """
+    """Testing whether different keys lead to two entries in the FDB"""
     _, fdb = setup_fdb_tmp_dir()
 
     filename = util.find_git_root() / "tests" / "data" / "x138-300.grib"
@@ -66,7 +64,7 @@ def test_archive_different_keys(setup_fdb_tmp_dir):
 
 
 def test_archive_different_request_key(setup_fdb_tmp_dir):
-    """Test whether archival with key and correct request object lead to two identical entries """
+    """Test whether archival with key and correct request object lead to two identical entries"""
     _, fdb = setup_fdb_tmp_dir()
 
     filename = util.find_git_root() / "tests" / "data" / "x138-300.grib"
@@ -124,7 +122,7 @@ def test_archive_different_request_key(setup_fdb_tmp_dir):
 
 def test_archive_none_retrieve_wrong_key(setup_fdb_tmp_dir):
     """Test whether a archival of the grib message only lead to the correct behavior when looking
-    it up with the derived request """
+    it up with the derived request"""
     tmp_root_dir, fdb = setup_fdb_tmp_dir()
 
     filename = util.get_test_data_root() / "x138-300.grib"
@@ -150,7 +148,7 @@ def test_archive_none_retrieve_wrong_key(setup_fdb_tmp_dir):
     reader = StreamReader(dataretriever1)
 
     # Expect it to fail with the wrong request...
-    with pytest.raises(StopIteration) as stop_iteration:
+    with pytest.raises(StopIteration) as _:
         next(reader)
 
     # But succeed with the right one
@@ -175,7 +173,7 @@ def test_archive_none_retrieve_wrong_key(setup_fdb_tmp_dir):
 
 
 def test_archive_wrong_request(setup_fdb_tmp_dir):
-    """Test the archival with a wrongly matched request. Tests for occurring FDBException """
+    """Test the archival with a wrongly matched request. Tests for occurring FDBException"""
     tmp_root_dir, fdb = setup_fdb_tmp_dir()
 
     filename = util.get_test_data_root() / "x138-300.grib"
@@ -194,13 +192,13 @@ def test_archive_wrong_request(setup_fdb_tmp_dir):
         "type": "an",
     }
 
-    with pytest.raises(FDBException) as fdb_exception:
+    with pytest.raises(FDBException) as _:
         fdb.archive(open(filename, "rb").read(), Request(dict1))
         fdb.flush()
 
 
 def test_archive_wrong_dict_as_request(setup_fdb_tmp_dir):
-    """Test the archival with a wrongly matched dict. Tests for occurring FDBException """
+    """Test the archival with a wrongly matched dict. Tests for occurring FDBException"""
     tmp_root_dir, fdb = setup_fdb_tmp_dir()
 
     filename = util.get_test_data_root() / "x138-300.grib"
@@ -219,7 +217,6 @@ def test_archive_wrong_dict_as_request(setup_fdb_tmp_dir):
         "type": "an",
     }
 
-    with pytest.raises(FDBException) as fdb_exception:
+    with pytest.raises(FDBException) as _:
         fdb.archive(open(filename, "rb").read(), dict1)
         fdb.flush()
-
