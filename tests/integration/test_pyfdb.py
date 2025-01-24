@@ -37,6 +37,7 @@ def test_archival_read(setup_fdb_tmp_dir, tmp_path_factory):
     print(root_dir)
 
     with open(util.get_test_data_root() / "x138-300.grib", "rb") as filename:
+        # This calls the archive function for a None request
         fdb.archive(filename.read())
 
     key["levelist"] = "400"

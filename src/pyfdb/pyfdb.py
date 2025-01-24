@@ -17,7 +17,7 @@ import io
 import json
 import os
 from functools import wraps
-from typing import overload
+from typing import Optional, overload
 
 import cffi
 import findlibs
@@ -337,43 +337,75 @@ class FDB:
         self.__fdb = ffi.gc(fdb[0], lib.fdb_delete_handle)
 
     @overload
-    def archive(self, data: bytes, request_or_key: Request | dict | None = None) -> None: ...
+    def archive(self, data: bytes, request: Optional[Request | dict | None] = None, key: None = None) -> None: ...
 
     @overload
-    def archive(self, data: bytes, request_or_key: Key) -> None: ...
+    def archive(self, data: bytes, request: None = None, key: Optional[Key | dict] = None) -> None: ...
 
-    def archive(self, data: bytes, request_or_key: Key | Request | dict | None = None) -> None:
+    def archive(
+        self,
+        data: bytes,
+        request: Optional[Request | dict] = None,
+        key: Optional[Key | dict] = None,
+    ) -> None:
         """Archive data into the FDB5 database
 
         Args:
             data: bytes data to be archived
-            request_or_key: Depending on the type, one of the following:
-                Key:
-                    Calls the fdb archive API. The key is used to set the meta-information of
-                    the written bytes. There is no check whether the written bytes and the meta-
-                    information is matching.
+            request: Depending on the type, one of the following:
                 Request:
-                    Calls the fdb archive multiple API. The given data will be checked against the
+                    Calls the fdb archive multiple API.
+                    The given data will be checked against the
                     given request. In case of a mismatch an
                 Dict[str, str]:
-                None:
-                dictionary representing the request to be associated with the data,
-                    if not provided the key will be constructed from the data.
+                    Dictionary representing the request to be
+                    associated with the data,
+                    if not provided the key will be constructed
+                    from the data.
+            key: Depending on the type, one of the following:
+                Key:
+                    Calls the fdb archive API. The key is used
+                    to set the meta-information of the written
+                    bytes. There is no check whether the written
+                    bytes and the meta-information is matching.
+                Dict[str, str]:
+                    Dictionary representing the key to be associated with the data.
         """
-        match request_or_key:
-            case Key():
-                lib.fdb_archive(self.ctype, request_or_key.ctype, data, len(data))
-            case Request():
-                lib.fdb_archive_multiple(self.ctype, request_or_key.ctype, ffi.from_buffer(data), len(data))
-            case builtins.dict():
-                lib.fdb_archive_multiple(
-                    self.ctype,
-                    Request(request_or_key).ctype,
-                    ffi.from_buffer(data),
-                    len(data),
-                )
-            case None:
-                lib.fdb_archive_multiple(self.ctype, ffi.NULL, ffi.from_buffer(data), len(data))
+        if request is not None and key is not None:
+            raise RuntimeError(
+                "request and key parameter are not None. Either set a request (exclusive) or a key for the given data."
+            )
+
+        if key is None:
+            match request:
+                case Request():
+                    lib.fdb_archive_multiple(self.ctype, request.ctype, ffi.from_buffer(data), len(data))
+                case builtins.dict():
+                    lib.fdb_archive_multiple(
+                        self.ctype,
+                        Request(request).ctype,
+                        ffi.from_buffer(data),
+                        len(data),
+                    )
+                case None:
+                    lib.fdb_archive_multiple(self.ctype, ffi.NULL, ffi.from_buffer(data), len(data))
+                case _:
+                    raise RuntimeError(
+                        "Given request is neither a Request nor a dict[str, str]. \
+                        Please provide a valid request or consider calling the function with the `key` argument."
+                    )
+
+        if key:
+            match key:
+                case Key():
+                    lib.fdb_archive(self.ctype, key.ctype, data, len(data))
+                case builtins.dict():
+                    lib.fdb_archive(self.ctype, Key(key).ctype, ffi.from_buffer(data), len(data))
+                case _:
+                    raise RuntimeError(
+                        "Given request is neither a Key nor a dict[str, str]. \
+                        Please provide a valid request or consider calling the function with the `request` argument."
+                    )
 
     def flush(self) -> None:
         """Flush any archived data to disk"""
@@ -413,7 +445,11 @@ fdb = None
 
 # Use functools.wraps to copy over the docstring from FDB.xxx to the module level functions
 @wraps(FDB.archive)
-def archive(data: bytes, request_or_key: Key | Request | dict | None = None) -> None:
+def archive(
+    data: bytes,
+    request: Optional[Request | dict] = None,
+    key: Optional[Key | dict] = None,
+) -> None:
     """Archives bytes to the FDB
 
     Args:
@@ -425,7 +461,7 @@ def archive(data: bytes, request_or_key: Key | Request | dict | None = None) -> 
     global fdb
     if not fdb:
         fdb = FDB()
-    fdb.archive(data, request_or_key)
+    fdb.archive(data, request=request, key=key)
 
 
 @wraps(FDB.list)

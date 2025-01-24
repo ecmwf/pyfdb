@@ -3,7 +3,7 @@ import pytest
 from eccodes import StreamReader
 
 import tests.util as util
-from pyfdb.pyfdb import FDBException, Key, Request
+from pyfdb.pyfdb import FDB, FDBException, Key, Request
 
 
 def test_archive_different_keys(setup_fdb_tmp_dir):
@@ -25,8 +25,9 @@ def test_archive_different_keys(setup_fdb_tmp_dir):
         "time": "0000",
         "type": "an",
     }
+    fdb: FDB = fdb
 
-    fdb.archive(open(filename, "rb").read(), Key(dict1))
+    fdb.archive(open(filename, "rb").read(), key=Key(dict1))
 
     dict2 = {
         "class": "od",
@@ -42,7 +43,7 @@ def test_archive_different_keys(setup_fdb_tmp_dir):
         "type": "an",
     }
 
-    fdb.archive(open(filename, "rb").read(), Key(dict2))
+    fdb.archive(open(filename, "rb").read(), key=Key(dict2))
     fdb.flush()
 
     # Retrieve the data saved with key 1
@@ -83,7 +84,7 @@ def test_archive_different_request_key(setup_fdb_tmp_dir):
         "type": "an",
     }
 
-    fdb.archive(open(filename, "rb").read(), Request(dict1))
+    fdb.archive(open(filename, "rb").read(), request=Request(dict1))
 
     dict2 = {
         "class": "od",
@@ -99,7 +100,7 @@ def test_archive_different_request_key(setup_fdb_tmp_dir):
         "type": "an",
     }
 
-    fdb.archive(open(filename, "rb").read(), Key(dict2))
+    fdb.archive(open(filename, "rb").read(), key=Key(dict2))
     fdb.flush()
 
     # Retrieve the data saved with key 1
@@ -123,7 +124,7 @@ def test_archive_different_request_key(setup_fdb_tmp_dir):
 def test_archive_none_retrieve_wrong_key(setup_fdb_tmp_dir):
     """Test whether a archival of the grib message only lead to the correct behavior when looking
     it up with the derived request"""
-    tmp_root_dir, fdb = setup_fdb_tmp_dir()
+    _, fdb = setup_fdb_tmp_dir()
 
     filename = util.get_test_data_root() / "x138-300.grib"
 
