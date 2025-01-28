@@ -351,12 +351,14 @@ class FDB:
         """Archive data into the FDB5 database
 
         Args:
+        -----
             data: bytes data to be archived
             request: Depending on the type, one of the following:
                 Request:
                     Calls the fdb archive multiple API.
                     The given data will be checked against the
                     given request. In case of a mismatch an
+                    exception will be raised.
                 Dict[str, str]:
                     Dictionary representing the request to be
                     associated with the data,
@@ -370,10 +372,14 @@ class FDB:
                     bytes and the meta-information is matching.
                 Dict[str, str]:
                     Dictionary representing the key to be associated with the data.
+
+        Notes:
+        ------
+        If a key is specified, `data` is archived as a single element.
         """
         if request is not None and key is not None:
             raise RuntimeError(
-                "request and key parameter are not None. Either set a request (exclusive) or a key for the given data."
+                "request and key parameter are both None. Either set a request (exclusive) or a key for the given data."
             )
 
         if key is None:
