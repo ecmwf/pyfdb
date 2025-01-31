@@ -7,4 +7,4 @@ pyfdb.egg-info/
 dist/
 **/build
 *.grib
-!data/*.grib
+!/tests/data/*.grib

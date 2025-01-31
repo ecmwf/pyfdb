@@ -37,6 +37,12 @@ int fdb_listiterator_attrs(fdb_listiterator_t* it, const char** uri, size_t* off
 int fdb_listiterator_splitkey(fdb_listiterator_t* it, fdb_split_key_t* key);
 int fdb_delete_listiterator(fdb_listiterator_t* it);
 
+struct fdb_wipeiterator_t;
+typedef struct fdb_wipeiterator_t fdb_wipeiterator_t;
+int fdb_wipeiterator_next(fdb_wipeiterator_t it);
+int fdb_wipeiterator_get(fdb_wipeiterator_t it, const char** element, size_t* length);
+int fdb_delete_wipeiterator(fdb_wipeiterator_t it);
+
 struct fdb_datareader_t;
 typedef struct fdb_datareader_t fdb_datareader_t;
 int fdb_new_datareader(fdb_datareader_t** dr);
@@ -57,5 +63,7 @@ int fdb_archive(fdb_handle_t* fdb, fdb_key_t* key, const char* data, size_t leng
 int fdb_archive_multiple(fdb_handle_t* fdb, fdb_request_t* req, const char* data, size_t length);
 int fdb_list(fdb_handle_t* fdb, const fdb_request_t* req, fdb_listiterator_t** it, bool duplicates);
 int fdb_retrieve(fdb_handle_t* fdb, fdb_request_t* req, fdb_datareader_t* dr);
+int fdb_wipe(fdb_handle_t* fdb, fdb_request_t* req, fdb_wipeiterator_t** it, bool doit, bool porcelain, bool unsafeWipeAll);
+int fdb_purge(fdb_handle_t* fdb, fdb_request_t* req, bool doit, bool porcelain);
 int fdb_flush(fdb_handle_t* fdb);
 int fdb_delete_handle(fdb_handle_t* fdb);
