@@ -34,7 +34,7 @@ dependencies = [
   "black",
   "flake8",
   "tox>=4.19",
-  "eccodes"
+  "eccodes>=2.39.1"
 ]
 
 [project.optional-dependencies]
