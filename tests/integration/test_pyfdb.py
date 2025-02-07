@@ -193,7 +193,7 @@ def test_archival_read(setup_fdb_tmp_dir, tmp_path_factory):
     print("decode GRIB")
 
     reader = StreamReader(datareader)
-    grib = next(reader)
+    next(reader)
 
     request["levelist"] = [300, "400"]
     request["expver"] = "xxxx"
