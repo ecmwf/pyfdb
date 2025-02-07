@@ -5,8 +5,6 @@
 
 This repository contains the source code and documentation of pyfdb, a python FDB client which interfaces the FDB5 library in the system.
 
-
-&nbsp;
 ## 1. Installation
 
 Install pyfdb with python3 (>= 3.6) and pip as follows:
@@ -38,8 +36,6 @@ export ECCODES_PYTHON_USE_FINDLIBS=1
 Other options can be found on the corresponding eccodes page of pypi:
 [Eccodes - Pypi](https://pypi.org/project/eccodes/)
 
-
-&nbsp;
 ## 2. Example
 
 An example of archival, listing and retrieval via pyfdb is shown next. For the example to work, FDB5 must be installed in the system, as well as the shutil, eccodes-python and pyfdb python packages. The GRIB files involved can be found under the `tests/unit/` folder in the pyfdb Git repository (https://github.com/ecmwf/pyfdb).
@@ -218,7 +214,6 @@ grib = next(reader)
 grib.dump()
 # [...redacted...]
 ```
-
 
 ## 3. Development
 
