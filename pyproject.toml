@@ -60,3 +60,11 @@ line_length = 120
 skip_glob=".*"
 skip = ["setup.py"]
 src_paths = ["src", "tests"]
+
+[tool.coverage.run]
+source = [
+  "src/pyfdb/*",
+]
+include = [
+  "tests/*",
+]
