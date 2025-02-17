@@ -1,3 +1,11 @@
+# (C) Copyright 2011- ECMWF.
+#
+# This software is licensed under the terms of the Apache Licence Version 2.0
+# which can be obtained at http://www.apache.org/licenses/LICENSE-2.0.
+# In applying this licence, ECMWF does not waive the privileges and immunities
+# granted to it by virtue of its status as an intergovernmental organisation
+# nor does it submit to any jurisdiction.
+
 """PyFDB is python client to the FDB5 library. It provides list, retrieve,
 and archive functions to interact with FDB5 databases.
 See the docstrings of pyfdb.list, pyfdb.archive, pyfdb.retrieve for more information.
