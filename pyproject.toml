@@ -30,11 +30,8 @@ requires-python = ">=3.9"
 dependencies = [
   "cffi",
   "findlibs",
-  "isort",
-  "black",
-  "flake8",
-  "tox>=4.19",
-  "eccodes>=2.39.1"
+  "eccodes>=2.39.1",
+  "packaging",
 ]
 
 [project.optional-dependencies]
@@ -42,7 +39,11 @@ test = [
   "pytest",
   "pytest-cov",
   "pytest-flakes",
-  "gitpython"
+  "gitpython",
+  "isort",
+  "black",
+  "flake8",
+  "tox>=4.19",
 ]
 
 [tool.setuptools.packages.find]
