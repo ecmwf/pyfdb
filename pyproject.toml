@@ -30,7 +30,8 @@ requires-python = ">=3.9"
 dependencies = [
   "cffi",
   "findlibs",
-  "eccodes>=1.5.0"
+  "eccodes>=2.39.1",
+  "packaging",
 ]
 
 [project.optional-dependencies]
@@ -38,13 +39,14 @@ test = [
   "pytest",
   "pytest-cov",
   "pytest-flakes",
-]
+  "gitpython"
+  ]
 
 dev = [
-  "tox>=4.19",
   "isort",
   "black",
   "flake8",
+  "tox>=4.19",
 ]
 
 [tool.setuptools.packages.find]
@@ -62,3 +64,11 @@ line_length = 120
 skip_glob=".*"
 skip = ["setup.py"]
 src_paths = ["src", "tests"]
+
+[tool.coverage.run]
+source = [
+  "src/pyfdb/*",
+]
+include = [
+  "tests/*",
+]

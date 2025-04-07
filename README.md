@@ -1,10 +1,10 @@
 # pyfdb
 
+[![Static Badge](https://github.com/ecmwf/codex/raw/refs/heads/main/Project%20Maturity/emerging_badge.svg)](https://github.com/ecmwf/codex/raw/refs/heads/main/Project%20Maturity)
+[![codecov](https://codecov.io/gh/ecmwf/pyfdb/branch/develop/graph/badge.svg)](https://codecov.io/gh/ecmwf/pyfdb/tree/develop)
+
 This repository contains the source code and documentation of pyfdb, a python FDB client which interfaces the FDB5 library in the system.
 
-:warning: This project is BETA and will be experimental for the foreseeable future. Interfaces and functionality are likely to change.
-
-&nbsp;
 ## 1. Installation
 
 Install pyfdb with python3 (>= 3.6) and pip as follows:
@@ -24,7 +24,18 @@ conda activate client
 python -m pip install --upgrade git+https://github.com/ecmwf/pyfdb.git@master
 ```
 
-&nbsp;
+Since eccodes version 2.37.0, the eccodes binaries are shipped with the python binary, which can
+lead to some issues, especially if the locally installed stack of the software is executed. To
+overcome this, export the following environment variable (this will use the locally installed version
+of eccodes):
+
+```bash
+export ECCODES_PYTHON_USE_FINDLIBS=1
+```
+
+Other options can be found on the corresponding eccodes page of pypi:
+[Eccodes - Pypi](https://pypi.org/project/eccodes/)
+
 ## 2. Example
 
 An example of archival, listing and retrieval via pyfdb is shown next. For the example to work, FDB5 must be installed in the system, as well as the shutil, eccodes-python and pyfdb python packages. The GRIB files involved can be found under the `tests/unit/` folder in the pyfdb Git repository (https://github.com/ecmwf/pyfdb).
@@ -204,7 +215,6 @@ grib.dump()
 # [...redacted...]
 ```
 
-
 ## 3. Development
 
 ### Pre-Commit Hooks
@@ -214,7 +224,10 @@ Pre-commit hooks are supplied in `.pre-commit-config.yaml` to lint and format th
 pip install pre-commit
 pre-commit install # Install the hooks so that they run before `git commit`
 ```
-At the moment this runs isort, black and flake8, if any of these encounter errors they can't autofix then the commit will be blocked.
+At the moment this runs isort, black and flake8, if any of these encounter errors they can't autofix then the commit will be blocked. To install all needed dependencies, run:
+```bash
+pip install ".[dev]"
+```
 
 ### Run Unit Tests
 
