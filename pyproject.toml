@@ -39,7 +39,10 @@ test = [
   "pytest",
   "pytest-cov",
   "pytest-flakes",
-  "gitpython",
+  "gitpython"
+  ]
+
+dev = [
   "isort",
   "black",
   "flake8",
