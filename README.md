@@ -224,7 +224,10 @@ Pre-commit hooks are supplied in `.pre-commit-config.yaml` to lint and format th
 pip install pre-commit
 pre-commit install # Install the hooks so that they run before `git commit`
 ```
-At the moment this runs isort, black and flake8, if any of these encounter errors they can't autofix then the commit will be blocked.
+At the moment this runs isort, black and flake8, if any of these encounter errors they can't autofix then the commit will be blocked. To install all needed dependencies, run:
+```bash
+pip install ".[dev]"
+```
 
 ### Run Unit Tests
 
