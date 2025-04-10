@@ -67,3 +67,15 @@ int fdb_list(fdb_handle_t* fdb, const fdb_request_t* req, fdb_listiterator_t** i
 int fdb_retrieve(fdb_handle_t* fdb, fdb_request_t* req, fdb_datareader_t* dr);
 int fdb_flush(fdb_handle_t* fdb);
 int fdb_delete_handle(fdb_handle_t* fdb);
+
+struct fdb_wipe_element_t;
+typedef struct fdb_wipe_element_t fdb_wipe_element_t;
+
+struct fdb_wipe_iterator_t;
+typedef struct fdb_wipe_iterator_t fdb_wipe_iterator_t;
+
+int fdb_wipe(fdb_handle_t* fdb, fdb_request_t* req, bool doit, bool porcelain, bool unsafeWipeAll, fdb_wipe_iterator_t** it);
+int fdb_wipe_iterator_next(fdb_wipe_iterator_t* it, fdb_wipe_element_t** element);
+int fdb_delete_wipe_iterator(fdb_wipe_iterator_t* it);
+int fdb_delete_wipe_element(fdb_wipe_element_t* element);
+int fdb_wipe_element_string(fdb_wipe_element_t* element, const char** str);
