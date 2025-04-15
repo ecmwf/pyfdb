@@ -6,9 +6,11 @@
 # granted to it by virtue of its status as an intergovernmental organisation
 # nor does it submit to any jurisdiction.
 
-import pytest
-from pyfdb.pyfdb import FDBException
 from pathlib import Path
+
+import pytest
+
+from pyfdb.pyfdb import FDBException
 
 BASE_REQUEST = {
     "class": "rd",
@@ -24,14 +26,14 @@ BASE_REQUEST = {
     "step": "0",
 }
 
+
 def ls(path):
     return [p for p in Path(path).rglob("*")]
 
+
 def populate_fdb(fdb):
     # Write 4 fields to the FDB based on BASE_REQUEST
-    requests = [
-        BASE_REQUEST.copy() for i in range(4)
-    ]
+    requests = [BASE_REQUEST.copy() for i in range(4)]
 
     # Modify on each of the 3 levels of the schema
     requests[1]["step"] = "1"
@@ -47,50 +49,81 @@ def populate_fdb(fdb):
         fdb.archive(bytes, key=key)
     fdb.flush()
 
-    assert len([x for x in fdb.list()]) == NFIELDS
     return NFIELDS
+
 
 def test_wipe_simple(setup_fdb_tmp_dir):
     testdir, fdb = setup_fdb_tmp_dir()
 
     NFIELDS = populate_fdb(fdb)
+    assert len([x for x in fdb.list()]) == NFIELDS
 
     Npaths = len(ls(testdir))
     assert Npaths > 0
 
     # Wipe without doit: Do not actually delete anything.
-    fdb.wipe({"class":"rd"})
+    fdb.wipe({"class": "rd"})
     assert len([x for x in fdb.list()]) == NFIELDS
 
     # Wipe, do it
-    fdb.wipe({"class":"rd"}, doit=True)
+    fdb.wipe({"class": "rd"}, doit=True)
     assert len([x for x in fdb.list()]) == 0
     assert len(ls(testdir)) == 0
 
+
+# Test behaviour of fdb.wipe() when there are junk files in the FDB
 def test_wipe_polluted(setup_fdb_tmp_dir):
     testdir, fdb = setup_fdb_tmp_dir()
 
     NFIELDS = populate_fdb(fdb)
+    assert len([x for x in fdb.list()]) == NFIELDS
 
     # Add a junk file to each subdirectory
     for subdir in Path(testdir).rglob("*"):
         if subdir.is_dir():
             (subdir / "junk").touch()
-            
+
     Npaths = len(ls(testdir))
     assert Npaths > 0
 
-    # fdb does not allow you to unrecognised files by default
+    # fdb does not allow you to wipe unrecognised files by default
     with pytest.raises(FDBException):
-        fdb.wipe({"class":"rd"}, doit=True)
+        fdb.wipe({"class": "rd"}, doit=True)
 
     # Nothing deleted
-    assert len(ls(testdir)) == Npaths 
+    assert len(ls(testdir)) == Npaths
     assert len([x for x in fdb.list()]) == NFIELDS
 
-    fdb.wipe({"class":"rd"}, doit=True, unsafeWipeAll=True)
-    
+    fdb.wipe({"class": "rd"}, doit=True, unsafeWipeAll=True)
+
     # All files and directories deleted
     assert len([x for x in fdb.list()]) == 0
-    assert len(ls(testdir)) == 0 
+    assert len(ls(testdir)) == 0
 
+
+# @TODO: FDB-457: The default behaviour of pyfdb.list is inconsistent with the
+# C / C++ API. pyfdb defaults to including duplicates, while the C++ API does not.
+# I believe this should be changed. Update this test accordingly.
+def test_purge(setup_fdb_tmp_dir):
+
+    # Populate
+    testdir, fdb = setup_fdb_tmp_dir()
+
+    n_written = populate_fdb(fdb)
+    assert n_written == 4
+    assert len([x for x in fdb.list()]) == n_written
+
+    # There is no duplicate data, so purge should not delete anything
+    fdb.purge({"class": "rd"}, doit=True)
+    assert len([x for x in fdb.list()]) == n_written  # @FIXME: fdb.list should require duplicates=True
+
+    # Add duplicate data
+    populate_fdb(fdb)
+    assert len([x for x in fdb.list()]) == n_written * 2  # @FIXME: fdb.list should require duplicates=True
+
+    # Purge the duplicates. It does not delete anything without doit=True
+    fdb.purge({"class": "rd"})
+    assert len([x for x in fdb.list()]) == n_written * 2  # @FIXME: fdb.list should require duplicates=True
+
+    fdb.purge({"class": "rd"}, doit=True)
+    assert len([x for x in fdb.list()]) == n_written  # @FIXME: fdb.list should require duplicates=True

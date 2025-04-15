@@ -79,3 +79,16 @@ int fdb_wipe_iterator_next(fdb_wipe_iterator_t* it, fdb_wipe_element_t** element
 int fdb_delete_wipe_iterator(fdb_wipe_iterator_t* it);
 int fdb_delete_wipe_element(fdb_wipe_element_t* element);
 int fdb_wipe_element_string(fdb_wipe_element_t* element, const char** str);
+
+
+struct fdb_purge_element_t;
+typedef struct fdb_purge_element_t fdb_purge_element_t;
+
+struct fdb_purge_iterator_t;
+typedef struct fdb_purge_iterator_t fdb_purge_iterator_t;
+
+int fdb_purge(fdb_handle_t* fdb, fdb_request_t* req, bool doit, bool porcelain, fdb_purge_iterator_t** it);
+int fdb_purge_iterator_next(fdb_purge_iterator_t* it, fdb_purge_element_t** element);
+int fdb_delete_purge_iterator(fdb_purge_iterator_t* it);
+int fdb_delete_purge_element(fdb_purge_element_t* element);
+int fdb_purge_element_string(fdb_purge_element_t* element, const char** str);
