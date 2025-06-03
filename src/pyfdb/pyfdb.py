@@ -223,6 +223,42 @@ class ListIterator:
         return self
 
 
+class WipeIterator:
+    __iterator = None
+
+    def __init__(self, fdb, request, doit, porcelain, unsafeWipeAll):
+        iterator = ffi.new("fdb_wipe_iterator_t**")
+        req = Request(request)
+        lib.fdb_wipe(fdb.ctype, req.ctype, doit, porcelain, unsafeWipeAll, iterator)
+        self.__iterator = ffi.gc(iterator[0], lib.fdb_delete_wipe_iterator)
+
+    def __iter__(self):
+        element = ffi.new("fdb_wipe_element_t**")
+        while lib.fdb_wipe_iterator_next(self.__iterator, element) == lib.FDB_SUCCESS:
+            self.__element = ffi.gc(element[0], lib.fdb_delete_wipe_element)
+            msg = ffi.new("const char**")
+            lib.fdb_wipe_element_string(self.__element, msg)
+            yield ffi.string(msg[0]).decode("utf-8")
+
+
+class PurgeIterator:
+    __iterator = None
+
+    def __init__(self, fdb, request, doit, porcelain):
+        iterator = ffi.new("fdb_purge_iterator_t**")
+        req = Request(request)
+        lib.fdb_purge(fdb.ctype, req.ctype, doit, porcelain, iterator)
+        self.__iterator = ffi.gc(iterator[0], lib.fdb_delete_purge_iterator)
+
+    def __iter__(self):
+        element = ffi.new("fdb_purge_element_t**")
+        while lib.fdb_purge_iterator_next(self.__iterator, element) == lib.FDB_SUCCESS:
+            self.__element = ffi.gc(element[0], lib.fdb_delete_purge_element)
+            msg = ffi.new("const char**")
+            lib.fdb_purge_element_string(self.__element, msg)
+            yield ffi.string(msg[0]).decode("utf-8")
+
+
 class DataRetriever(io.RawIOBase):
     __dataread = None
     __opened = False
@@ -434,6 +470,54 @@ class FDB:
             DataRetriever: An object implementing a file-like interface to the data stream.
         """
         return DataRetriever(self, request)
+
+    # @todo: I believe unsafeWipeAll may do *more* than just allowing deletion of non-FDB files.
+    # but it is not documented anywhere.
+    def wipe(self, request, doit=False, porcelain=False, unsafeWipeAll=False, verbose=False):
+        """Delete data matching the request from the FDB.
+
+        This function identifies all entries in the database that match the given request.
+        If `doit` is False, a dry run is performed and only the entries that *would* be deleted are printed.
+        If `doit` is True, the matching entries are actually removed from the database.
+
+        Args:
+            request (dict): Dictionary representing the request.
+            doit (bool, optional): If True, performs the wipe (deletes matching entries). If False, performs a dry
+              run and prints the entries that would be deleted.
+            porcelain (bool, optional): If True, prints the output of the wipe operation in a more machine-readable
+              format.
+            unsafeWipeAll (bool, optional): If True, also delete non-FDB files found in the database directory.
+            verbose (bool, optional): If True, prints the output of the wipe operation even if `doit` is True.
+        """
+
+        for msg in WipeIterator(self, request, doit, porcelain, unsafeWipeAll):
+            if verbose or not doit:
+                print(msg)
+
+        # @note: It would be nice to return the URIs of the deleted files, but the output of the WipeIterator is not
+        #  structured in a way that reliably allows this.
+        return
+
+    def purge(self, request, doit=False, porcelain=False, verbose=False):
+        """Delete *duplicate* data matching the request from the FDB. Only the newest version of the data is kept.
+
+        This function identifies all entries in the database that match the given request.
+        If `doit` is False, a dry run is performed and only the entries that *would* be deleted are printed.
+        If `doit` is True, the matching entries are actually removed from the database.
+
+        Args:
+            request (dict): Dictionary representing the request.
+            doit (bool, optional): If True, performs the purge (deletes matching entries). If False, performs a dry
+              run and prints the entries that would be deleted.
+            porcelain (bool, optional): If True, prints the output of the purge operation in a more machine-readable
+              format.
+            verbose (bool, optional): If True, prints the output of the purge operation even if `doit` is True.
+        """
+        for msg in PurgeIterator(self, request, doit, porcelain):
+            if verbose or not doit:
+                print(msg)
+
+        return
 
     @property
     def ctype(self):
