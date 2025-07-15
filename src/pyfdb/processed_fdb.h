@@ -41,7 +41,8 @@ int fdb_delete_splitkey(fdb_split_key_t* key);
 struct fdb_listiterator_t;
 typedef struct fdb_listiterator_t fdb_listiterator_t;
 int fdb_listiterator_next(fdb_listiterator_t* it);
-int fdb_listiterator_attrs(fdb_listiterator_t* it, const char** uri, size_t* off, size_t* len);
+int fdb_listiterator_attrs(fdb_listiterator_t *it, const char **scheme, const char **host, int *port, const char **path,
+                           size_t *off, size_t *len);
 int fdb_listiterator_splitkey(fdb_listiterator_t* it, fdb_split_key_t* key);
 int fdb_delete_listiterator(fdb_listiterator_t* it);
 

@@ -184,7 +184,11 @@ class ListIterator:
         self.__iterator = ffi.gc(iterator[0], lib.fdb_delete_listiterator)
         self.__key = key
 
+        self.scheme = ffi.new("const char**")
+        self.host = ffi.new("const char**")
+        self.port = ffi.new("int*")
         self.path = ffi.new("const char**")
+
         self.off = ffi.new("size_t*")
         self.len = ffi.new("size_t*")
 
@@ -194,8 +198,11 @@ class ListIterator:
         if err != 0:
             raise StopIteration
 
-        lib.fdb_listiterator_attrs(self.__iterator, self.path, self.off, self.len)
+        lib.fdb_listiterator_attrs(self.__iterator, self.scheme, self.host, self.port, self.path, self.off, self.len)
         el = dict(
+            scheme=ffi.string(self.scheme[0]).decode("utf-8"),
+            host=ffi.string(self.host[0]).decode("utf-8"),
+            port=self.port[0],
             path=ffi.string(self.path[0]).decode("utf-8"),
             offset=self.off[0],
             length=self.len[0],
