@@ -49,8 +49,9 @@ dev = [
   "tox>=4.19",
 ]
 
-[tool.setuptools.packages.find]
-where = ["src", "tests"]
+[tool.setuptools]
+packages = ["pyfdb"]
+package-dir = {"" = "src" }
 
 [tool.setuptools.package-data]
 pyfdb = ["processed_fdb.h"]
