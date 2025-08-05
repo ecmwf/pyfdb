@@ -474,7 +474,8 @@ class FDB:
         Returns:
             ListIterator: an iterator over the entries.
         """
-        return ListIterator(self, request, duplicates, keys, schema)
+        expand = True
+        return ListIterator(self, request, duplicates, keys, expand, schema)
 
     def retrieve(self, request) -> DataRetriever:
         """Retrieve data as a stream.
