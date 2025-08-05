@@ -568,9 +568,10 @@ def archive(
 @wraps(FDB.list)
 def list(request, duplicates=False, keys=False, schema=False) -> ListIterator:
     global fdb
+    expand = True
     if not fdb:
         fdb = FDB()
-    return ListIterator(fdb, request, duplicates, keys, schema)
+    return ListIterator(fdb, request, duplicates, keys, expand, schema)
 
 
 @wraps(FDB.retrieve)
