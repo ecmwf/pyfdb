@@ -8,6 +8,8 @@
 # granted to it by virtue of its status as an intergovernmental organisation nor
 # does it submit to any jurisdiction.
 
+import faulthandler
+faulthandler.enable()
 
 import shutil
 
@@ -76,7 +78,7 @@ def test_archival_read(setup_fdb_tmp_dir, tmp_path_factory):
     request["param"] = "138"
     print("")
     print("direct function, updated dictionary:", request)
-    it = fdb.list(request, True, True)
+    it = fdb.list(request, True, True, True)
 
     el = next(it)
     assert el["path"]
@@ -85,6 +87,14 @@ def test_archival_read(setup_fdb_tmp_dir, tmp_path_factory):
     keys = el["keys"]
     assert keys["class"] == "rd"
     assert keys["levelist"] == "300"
+    assert el["schema"]
+    schema = el["schema"]
+    assert "class" in schema[1]
+    assert schema[1]["class"] == keys["class"]
+    assert "levtype" in schema[2]
+    assert schema[2]["levtype"] == keys["leytype"]
+    assert "levelist" in schema[3]
+    assert schema[3]["levelist"] == keys["levelist"]
 
     el = next(it)
     assert el["path"]
@@ -93,6 +103,13 @@ def test_archival_read(setup_fdb_tmp_dir, tmp_path_factory):
     keys = el["keys"]
     assert keys["class"] == "rd"
     assert keys["levelist"] == "400"
+    schema = el["schema"]
+    assert "class" in schema[1]
+    assert schema[1]["class"] == keys["class"]
+    assert "levtype" in schema[2]
+    assert schema[2]["levtype"] == keys["leytype"]
+    assert "levelist" in schema[3]
+    assert schema[3]["levelist"] == keys["levelist"]
 
     try:
         el = next(it)

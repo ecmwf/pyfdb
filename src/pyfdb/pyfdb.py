@@ -171,7 +171,7 @@ class ListIterator:
     __iterator = None
     __key = False
 
-    def __init__(self, fdb, request, duplicates, key=False, expand=True):
+    def __init__(self, fdb, request, duplicates, key=False, expand=True, schema=False):
         iterator = ffi.new("fdb_listiterator_t**")
         if request:
             req = Request(request)
@@ -183,10 +183,12 @@ class ListIterator:
 
         self.__iterator = ffi.gc(iterator[0], lib.fdb_delete_listiterator)
         self.__key = key
+        self.__schema = schema
 
         self.path = ffi.new("const char**")
         self.off = ffi.new("size_t*")
         self.len = ffi.new("size_t*")
+        
 
     def __next__(self) -> dict:
         err = lib.fdb_listiterator_next(self.__iterator)
@@ -201,7 +203,7 @@ class ListIterator:
             length=self.len[0],
         )
 
-        if self.__key:
+        if self.__key or self.__schema:
             splitkey = ffi.new("fdb_split_key_t**")
             lib.fdb_new_splitkey(splitkey)
             key = ffi.gc(splitkey[0], lib.fdb_delete_splitkey)
@@ -213,9 +215,22 @@ class ListIterator:
             level = ffi.new("size_t*")
 
             meta = dict()
-            while lib.fdb_splitkey_next_metadata(key, k, v, level) == 0:
-                meta[ffi.string(k[0]).decode("utf-8")] = ffi.string(v[0]).decode("utf-8")
-            el["keys"] = meta
+            if self.__schema:
+                schema = dict()
+                for lvl in range(1,4):
+                    schema[lvl] = dict()
+                while lib.fdb_splitkey_next_metadata(key, k, v, level) == 0:
+                    mKey = ffi.string(k[0]).decode('utf-8')
+                    val  = ffi.string(v[0]).decode('utf-8')
+                    meta[mKey] = val
+                    schema[int(level[0])+1][mKey] = val
+                el['schema'] = schema
+            else: # key=True and schema=False
+                while lib.fdb_splitkey_next_metadata(key, k, v, level) == 0:
+                    meta[ffi.string(k[0]).decode("utf-8")] = ffi.string(v[0]).decode("utf-8")
+
+            if self.__key:
+                el["keys"] = meta
 
         return el
 
@@ -447,18 +462,20 @@ class FDB:
         """Flush any archived data to disk"""
         lib.fdb_flush(self.ctype)
 
-    def list(self, request=None, duplicates=False, keys=False) -> ListIterator:
+    def list(self, request=None, duplicates=False, keys=False, schema=False) -> ListIterator:
         """List entries in the FDB5 database
 
         Args:
             request (dict): dictionary representing the request.
             duplicates (bool) = false : whether to include duplicate entries.
             keys (bool) = false : whether to include the keys for each entry in the output.
+            schema (bool) = false : whether to include the metadata sorted according to the three FDB schema levels for each entry in the output.
 
         Returns:
             ListIterator: an iterator over the entries.
         """
-        return ListIterator(self, request, duplicates, keys)
+        expand = True
+        return ListIterator(self, request, duplicates, keys, expand, schema)
 
     def retrieve(self, request) -> DataRetriever:
         """Retrieve data as a stream.
@@ -549,11 +566,12 @@ def archive(
 
 
 @wraps(FDB.list)
-def list(request, duplicates=False, keys=False) -> ListIterator:
+def list(request, duplicates=False, keys=False, schema=False) -> ListIterator:
     global fdb
+    expand = True # as not public to the user
     if not fdb:
         fdb = FDB()
-    return ListIterator(fdb, request, duplicates, keys)
+    return ListIterator(fdb, request, duplicates, keys, expand, schema)
 
 
 @wraps(FDB.retrieve)
