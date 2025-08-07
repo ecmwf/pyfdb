@@ -16,6 +16,7 @@ from typing import Optional, overload
 import cffi
 import findlibs
 from packaging import version
+from collections import defaultdict
 
 from .version import __version__
 
@@ -171,7 +172,7 @@ class ListIterator:
     __iterator = None
     __key = False
 
-    def __init__(self, fdb, request, duplicates, key=False, expand=True):
+    def __init__(self, fdb, request, duplicates, key=False, expand=True, levels=False):
         iterator = ffi.new("fdb_listiterator_t**")
         if request:
             req = Request(request)
@@ -191,6 +192,7 @@ class ListIterator:
 
         self.off = ffi.new("size_t*")
         self.len = ffi.new("size_t*")
+        self.levels = levels
 
     def __next__(self) -> dict:
         err = lib.fdb_listiterator_next(self.__iterator)
@@ -219,10 +221,14 @@ class ListIterator:
             v = ffi.new("const char**")
             level = ffi.new("size_t*")
 
-            meta = dict()
+            meta = defaultdict(dict)
             while lib.fdb_splitkey_next_metadata(key, k, v, level) == 0:
-                meta[ffi.string(k[0]).decode("utf-8")] = ffi.string(v[0]).decode("utf-8")
-            el["keys"] = meta
+                if self.levels:
+                    meta[level[0]][ffi.string(k[0]).decode("utf-8")] = ffi.string(v[0]).decode("utf-8")
+                else:
+                    meta[ffi.string(k[0]).decode("utf-8")] = ffi.string(v[0]).decode("utf-8")
+            
+            el["keys"] = dict(meta)
 
         return el
 
@@ -454,7 +460,7 @@ class FDB:
         """Flush any archived data to disk"""
         lib.fdb_flush(self.ctype)
 
-    def list(self, request=None, duplicates=False, keys=False) -> ListIterator:
+    def list(self, request=None, duplicates=False, keys=False, levels=False) -> ListIterator:
         """List entries in the FDB5 database
 
         Args:
@@ -465,7 +471,7 @@ class FDB:
         Returns:
             ListIterator: an iterator over the entries.
         """
-        return ListIterator(self, request, duplicates, keys)
+        return ListIterator(self, request, duplicates, keys, levels)
 
     def retrieve(self, request) -> DataRetriever:
         """Retrieve data as a stream.
