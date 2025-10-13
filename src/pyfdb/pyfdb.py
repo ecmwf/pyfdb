@@ -53,7 +53,8 @@ class PatchedLib:
         for f in dir(self.__lib):
             try:
                 attr = getattr(self.__lib, f)
-                setattr(self, f, self.__check_error(attr, f) if callable(attr) else attr)
+                setattr(self, f, self.__check_error(
+                    attr, f) if callable(attr) else attr)
             except Exception as e:
                 print(e)
                 print("Error retrieving attribute", f, "from library")
@@ -89,7 +90,8 @@ class PatchedLib:
             if retval != self.__lib.FDB_SUCCESS and retval != self.__lib.FDB_ITERATION_COMPLETE:
                 error_str = "Error in function {}: {}".format(
                     name,
-                    ffi.string(self.__lib.fdb_error_string(retval)).decode("utf-8", "backslashreplace"),
+                    ffi.string(self.__lib.fdb_error_string(retval)).decode(
+                        "utf-8", "backslashreplace"),
                 )
                 raise FDBException(error_str)
             return retval
@@ -200,7 +202,8 @@ class ListIterator:
         if err != 0:
             raise StopIteration
 
-        lib.fdb_listiterator_attrs(self.__iterator, self.scheme, self.host, self.port, self.path, self.off, self.len)
+        lib.fdb_listiterator_attrs(
+            self.__iterator, self.scheme, self.host, self.port, self.path, self.off, self.len)
         el = dict(
             scheme=ffi.string(self.scheme[0]).decode("utf-8"),
             host=ffi.string(self.host[0]).decode("utf-8"),
@@ -224,10 +227,12 @@ class ListIterator:
             meta = defaultdict(dict)
             while lib.fdb_splitkey_next_metadata(key, k, v, level) == 0:
                 if self.levels:
-                    meta[level[0]][ffi.string(k[0]).decode("utf-8")] = ffi.string(v[0]).decode("utf-8")
+                    meta[level[0]][ffi.string(k[0]).decode(
+                        "utf-8")] = ffi.string(v[0]).decode("utf-8")
                 else:
-                    meta[ffi.string(k[0]).decode("utf-8")] = ffi.string(v[0]).decode("utf-8")
-            
+                    meta[ffi.string(k[0]).decode("utf-8")
+                         ] = ffi.string(v[0]).decode("utf-8")
+
             el["keys"] = dict(meta)
 
         return el
@@ -242,7 +247,8 @@ class WipeIterator:
     def __init__(self, fdb, request, doit, porcelain, unsafeWipeAll):
         iterator = ffi.new("fdb_wipe_iterator_t**")
         req = Request(request)
-        lib.fdb_wipe(fdb.ctype, req.ctype, doit, porcelain, unsafeWipeAll, iterator)
+        lib.fdb_wipe(fdb.ctype, req.ctype, doit,
+                     porcelain, unsafeWipeAll, iterator)
         self.__iterator = ffi.gc(iterator[0], lib.fdb_delete_wipe_iterator)
 
     def __iter__(self):
@@ -329,8 +335,9 @@ class DataRetriever(io.RawIOBase):
                 size = self.size()
             buf = bytearray(size)
             read = ffi.new("long*")
-            lib.fdb_datareader_read(self.__dataread, ffi.from_buffer(buf), size, read)
-            return buf[0 : read[0]]
+            lib.fdb_datareader_read(
+                self.__dataread, ffi.from_buffer(buf), size, read)
+            return buf[0: read[0]]
         return bytearray()
 
     def __enter__(self):
@@ -380,10 +387,12 @@ class FDB:
         self.__fdb = ffi.gc(fdb[0], lib.fdb_delete_handle)
 
     @overload
-    def archive(self, data: bytes, request: Optional[Request | dict | None] = None, key: None = None) -> None: ...
+    def archive(self, data: bytes,
+                request: Optional[Request | dict | None] = None, key: None = None) -> None: ...
 
     @overload
-    def archive(self, data: bytes, request: None = None, key: Optional[Key | dict] = None) -> None: ...
+    def archive(self, data: bytes, request: None = None,
+                key: Optional[Key | dict] = None) -> None: ...
 
     def archive(
         self,
@@ -428,7 +437,8 @@ class FDB:
         if key is None:
             match request:
                 case Request():
-                    lib.fdb_archive_multiple(self.ctype, request.ctype, ffi.from_buffer(data), len(data))
+                    lib.fdb_archive_multiple(
+                        self.ctype, request.ctype, ffi.from_buffer(data), len(data))
                 case builtins.dict():
                     lib.fdb_archive_multiple(
                         self.ctype,
@@ -437,7 +447,8 @@ class FDB:
                         len(data),
                     )
                 case None:
-                    lib.fdb_archive_multiple(self.ctype, ffi.NULL, ffi.from_buffer(data), len(data))
+                    lib.fdb_archive_multiple(
+                        self.ctype, ffi.NULL, ffi.from_buffer(data), len(data))
                 case _:
                     raise RuntimeError(
                         "Given request is neither a Request nor a dict[str, str]. \
@@ -449,7 +460,8 @@ class FDB:
                 case Key():
                     lib.fdb_archive(self.ctype, key.ctype, data, len(data))
                 case builtins.dict():
-                    lib.fdb_archive(self.ctype, Key(key).ctype, ffi.from_buffer(data), len(data))
+                    lib.fdb_archive(self.ctype, Key(key).ctype,
+                                    ffi.from_buffer(data), len(data))
                 case _:
                     raise RuntimeError(
                         "Given request is neither a Key nor a dict[str, str]. \
@@ -471,7 +483,7 @@ class FDB:
         Returns:
             ListIterator: an iterator over the entries.
         """
-        return ListIterator(self, request, duplicates, keys, levels)
+        return ListIterator(self, request, duplicates, keys, levels=levels)
 
     def retrieve(self, request) -> DataRetriever:
         """Retrieve data as a stream.
