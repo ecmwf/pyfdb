@@ -176,17 +176,19 @@ class Request:
 class ListIterator:
     __iterator = None
     __key = False
+    __depth = 3
 
-    def __init__(self, fdb, request, duplicates, key=False, expand=True):
+    def __init__(self, fdb, request, duplicates, key=False, expand=True, depth=3):
         iterator = ffi.new("fdb_listiterator_t**")
         if request:
             req = Request(request)
             if expand:
                 req.expand()
-            lib.fdb_list(fdb.ctype, req.ctype, iterator, duplicates)
+            lib.fdb_list(fdb.ctype, req.ctype, iterator, duplicates, depth)
         else:
-            lib.fdb_list(fdb.ctype, ffi.NULL, iterator, duplicates)
+            lib.fdb_list(fdb.ctype, ffi.NULL, iterator, duplicates, depth)
 
+        self.__depth = depth
         self.__iterator = ffi.gc(iterator[0], lib.fdb_delete_listiterator)
         self.__key = key
 
@@ -200,12 +202,12 @@ class ListIterator:
         if err != 0:
             raise StopIteration
 
-        lib.fdb_listiterator_attrs(self.__iterator, self.path, self.off, self.len)
-        el = dict(
-            path=ffi.string(self.path[0]).decode("utf-8"),
-            offset=self.off[0],
-            length=self.len[0],
-        )
+        el = dict()
+        if self.__depth == 3:
+            lib.fdb_listiterator_attrs(self.__iterator, self.path, self.off, self.len)
+            el["path"] = ffi.string(self.path[0]).decode("utf-8")
+            el["offset"] = self.off[0]
+            el["length"] = self.len[0]
 
         if self.__key:
             splitkey = ffi.new("fdb_split_key_t**")
@@ -417,7 +419,7 @@ class FDB:
         """Flush any archived data to disk"""
         lib.fdb_flush(self.ctype)
 
-    def list(self, request=None, duplicates=False, keys=False) -> ListIterator:
+    def list(self, request=None, duplicates=False, keys=False, expand=True, depth=3) -> ListIterator:
         """List entries in the FDB5 database
 
         Args:
@@ -428,7 +430,7 @@ class FDB:
         Returns:
             ListIterator: an iterator over the entries.
         """
-        return ListIterator(self, request, duplicates, keys)
+        return ListIterator(self, request, duplicates, keys, expand, depth)
 
     def retrieve(self, request) -> DataRetriever:
         """Retrieve data as a stream.
@@ -471,11 +473,11 @@ def archive(
 
 
 @wraps(FDB.list)
-def list(request, duplicates=False, keys=False) -> ListIterator:
+def list(request, duplicates=False, keys=False, expand=True, depth=3) -> ListIterator:
     global fdb
     if not fdb:
         fdb = FDB()
-    return ListIterator(fdb, request, duplicates, keys)
+    return ListIterator(fdb, request, duplicates, keys, expand, depth)
 
 
 @wraps(FDB.retrieve)
