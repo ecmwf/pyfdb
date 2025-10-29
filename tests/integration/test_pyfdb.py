@@ -115,7 +115,7 @@ def test_archival_read(setup_fdb_tmp_dir, tmp_path_factory):
     Test fdb list depth option
     """
 
-    request = {
+    listRequest = {
         "class": "rd",
         "expver": ["xxxx", "xxxy"],
         "stream": "oper",
@@ -129,7 +129,7 @@ def test_archival_read(setup_fdb_tmp_dir, tmp_path_factory):
         "param": "138",
     }
 
-    print("test list: request={0}".format(request))
+    print("test list: request={0}".format(listRequest))
 
     print("list: depth=1")
 
@@ -138,10 +138,9 @@ def test_archival_read(setup_fdb_tmp_dir, tmp_path_factory):
         {"class": "rd", "date": "20191110", "domain": "g", "expver": "xxxy", "stream": "oper", "time": "0000"},
     ]
 
-    for id, el in enumerate(fdb.list(request, True, True, False, 1)):
+    for id, el in enumerate(fdb.list(listRequest, True, True, False, 1)):
         assert "keys" in el
         assert el["keys"] == list[id]
-        # print("%(keys)s" % el)
 
     print("list: depth=2")
 
@@ -168,10 +167,9 @@ def test_archival_read(setup_fdb_tmp_dir, tmp_path_factory):
         },
     ]
 
-    for id, el in enumerate(fdb.list(request, True, True, False, 2)):
+    for id, el in enumerate(fdb.list(listRequest, True, True, False, 2)):
         assert "keys" in el
         assert el["keys"] == list[id]
-        # print("%(keys)s" % el)
 
     print("list: depth=3")
 
@@ -217,16 +215,14 @@ def test_archival_read(setup_fdb_tmp_dir, tmp_path_factory):
         },
     ]
 
-    for id, el in enumerate(fdb.list(request, True, True, False, 3)):
+    for id, el in enumerate(fdb.list(listRequest, True, True, False, 3)):
         assert "keys" in el
         assert el["keys"] == list[id]
-        # print("%(keys)s" % el)
 
     # default depth is 3
-    for id, el in enumerate(fdb.list(request, True, True, False)):
+    for id, el in enumerate(fdb.list(listRequest, True, True, False)):
         assert "keys" in el
         assert el["keys"] == list[id]
-         # print("%(keys)s" % el)
 
     # Retrieve
     request = {
