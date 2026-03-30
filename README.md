@@ -1,3 +1,26 @@
+> **Note**
+> This repository is no longer maintained and has been placed in read-only mode.
+> All source code, ongoing development, and issue tracking have been moved to:
+> **https://github.com/ecmwf/fdb**
+
+# Repository Status
+
+## Project Relocation
+
+The project has been migrated to consolidate development efforts and ensure a single, authoritative source for future updates.
+
+## Issues and Contributions
+
+Please do not open issues or submit pull requests in this repository.
+All new issues, feature requests, and contributions should be directed to the new repository:
+
+**https://github.com/ecmwf/fdb** (src/pyfdb)
+
+## Historical Reference
+
+This repository remains available solely for archival purposes.
+
+
 # pyfdb
 
 [![Static Badge](https://github.com/ecmwf/codex/raw/refs/heads/main/Project%20Maturity/emerging_badge.svg)](https://github.com/ecmwf/codex/raw/refs/heads/main/Project%20Maturity)
